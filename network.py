@@ -12,8 +12,10 @@ class neuralNetwork:
 		self.onodes = outputnodes
 		self.lrate = learningrate
 
-		self.wih = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
-		self.who = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
+		#Initailize matrices for weights between the hidden layer and input layer as well as 
+		#the output layer and the hidden later
+		self.weight_input_hidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
+		self.weight_hidden_output = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
 
 		#Activation function
 		self.activation_function = lambda x: scipy.special.expit(x)
@@ -23,18 +25,18 @@ class neuralNetwork:
 		inputs = numpy.array(inputs_list, ndmin=2).T
 		targets = numpy.array(targets_list, ndmin=2).T
 
-		hidden_inputs = numpy.dot(self.wih, inputs)
+		hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
 		hidden_outputs = self.activation_function(hidden_inputs)
 
-		final_inputs = numpy.dot(self.who, hidden_outputs)
+		final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
 		final_outputs = self.activation_function(final_inputs)
 		#Error (target-actual)
 		output_errors = targets - final_outputs
 
-		hidden_errors = numpy.dot(self.who.T, output_errors)
+		hidden_errors = numpy.dot(self.weight_hidden_output.T, output_errors)
 
-		self.who += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
-		self.wih += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
+		self.weight_hidden_output += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
+		self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
 
 	def query(self, inputs_list):
 
@@ -42,11 +44,11 @@ class neuralNetwork:
 		inputs = numpy.array(inputs_list, ndmin=2).T
 
 		#Calculate signals into hidden layer
-		hidden_inputs = numpy.dot(self.wih, inputs)
+		hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
 		hidden_outputs = self.activation_function(hidden_inputs)
 
 		#Calculate signals into final output later
-		final_inputs = numpy.dot(self.who, hidden_outputs)
+		final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
 
 		#Calculate the signals emerging from the final layer
 		final_outputs = self.activation_function(final_inputs)
@@ -57,7 +59,7 @@ class neuralNetwork:
 input_nodes = 784
 hidden_nodes = 100
 output_nodes = 10
-learning_rate = 0.3
+learning_rate = 0.5
 
 n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
@@ -67,7 +69,7 @@ training_data_file.close()
 
 #Train the neural network
 #Epochs is the number of times the training data set is used for training
-epochs = 5
+epochs = 10
 
 print("Training...")
 for e in range(epochs):
@@ -94,6 +96,7 @@ test_data_file.close()
 
 #Scorecard for how well the network performs, initially empty
 scorecard = []
+correct = 0
 num = 0
 print("Testing data...")
 #Go through all the records in the test data set
@@ -114,16 +117,19 @@ for record in test_data_list:
 	if (label == correct_label):
         #Network's answer matches correct answer, add 1 to scorecard
 		scorecard.append(1)
+		correct = correct + 1
 	else:
         #Network's answer doesn't match correct answer, add 0 to scorecard
 		scorecard.append(0)
 		pass
 
 	#Display correct letter
-	all_values = test_data_list[num].split(',')
-	image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
-	matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='None')
-	matplotlib.pyplot.show()
-	time.sleep(1.0)
+	# all_values = test_data_list[num].split(',')
+	# image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
+	# matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='None')
+	# matplotlib.pyplot.show()
+	# time.sleep(1.0)
 	num = num+1
 	pass
+
+print(correct/10000)
