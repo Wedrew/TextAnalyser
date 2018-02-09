@@ -59,7 +59,7 @@ class neuralNetwork:
 input_nodes = 784
 hidden_nodes = 100
 output_nodes = 10
-learning_rate = 0.5
+learning_rate = 0.3
 
 n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
