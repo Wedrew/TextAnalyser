@@ -20,7 +20,7 @@ Icon
 .com.apple.timemachine.donotpresent
 
 #To stop data files
-.csv
+*.csv
 
 # Directories potentially created on remote AFP share
 .AppleDB
