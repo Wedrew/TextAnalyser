@@ -33,7 +33,6 @@ class neuralNetwork:
         output_errors = targets - final_outputs
 
         hidden_errors = numpy.dot(self.weight_hidden_output.T, output_errors)
-        print("Error:", hidden_errors)
 
         self.weight_hidden_output += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
         self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
@@ -116,7 +115,7 @@ for record in test_data_list:
     label = numpy.argmax(outputs)
     print("Network's answer:", label)
     print("Correct label:", correct_label)
-    
+
     # Display correct letter
     #all_values = test_data_list[num].split(',')
     #image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
@@ -127,12 +126,12 @@ for record in test_data_list:
     #Append correct or incorrect to list
     if (label == correct_label):
         #Network's answer matches correct answer, add 1 to scorecard
-    	scorecard.append(1)
-    	correct = correct + 1
+        scorecard.append(1)
+        correct = correct + 1
     else:
         #Network's answer doesn't match correct answer, add 0 to scorecard
-    	scorecard.append(0)
-    	pass
+        scorecard.append(0)
+        pass
     pass
 
 print(correct/10000)
