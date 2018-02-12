@@ -70,7 +70,7 @@ training_data_file.close()
 #Train the neural network
 #Epochs is the number of times the training data set is used for training
 epochs = int(input("Amount of epochs: "))
-
+time_start = time.time()
 print("Training...")
 for e in range(epochs):
     #Go through all records in the training data set
@@ -88,6 +88,9 @@ for e in range(epochs):
     pass
 
 print("Done training...")
+time_elapsed = time.time()-time_start
+print("Program took {:d} minutes and {:.2f} seconds".format(int(time_elapsed//60), time_elapsed%60))
+prompt = input("Press any key test trained model")
 
 #Load the mnist test data CSV file into a list
 test_data_file = open("mnist_test.csv", 'r')
