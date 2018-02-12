@@ -6,54 +6,54 @@ import time
 
 #Neural network definition
 class neuralNetwork:
-	def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
-		self.inodes = inputnodes
-		self.hnodes = hiddennodes
-		self.onodes = outputnodes
-		self.lrate = learningrate
- 
-		#Initailize matrices for weights between the hidden layer and input layer as well as 
-		#the output layer and the hidden later
-		self.weight_input_hidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
-		self.weight_hidden_output = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
+    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
+        self.inodes = inputnodes
+        self.hnodes = hiddennodes
+        self.onodes = outputnodes
+        self.lrate = learningrate
 
-		#Activation function
-		self.activation_function = lambda x: scipy.special.expit(x)
+        #Initailize matrices for weights between the hidden layer and input layer as well as 
+        #the output layer and the hidden later
+        self.weight_input_hidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
+        self.weight_hidden_output = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
 
+        #Activation function
+        self.activation_function = lambda x: scipy.special.expit(x)
 
-	def train(self, inputs_list, targets_list):
-		inputs = numpy.array(inputs_list, ndmin=2).T
-		targets = numpy.array(targets_list, ndmin=2).T
+    def train(self, inputs_list, targets_list):
+        inputs = numpy.array(inputs_list, ndmin=2).T
+        targets = numpy.array(targets_list, ndmin=2).T
 
-		hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
-		hidden_outputs = self.activation_function(hidden_inputs)
+        hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
+        hidden_outputs = self.activation_function(hidden_inputs)
 
-		final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
-		final_outputs = self.activation_function(final_inputs)
-		#Error (target-actual)
-		output_errors = targets - final_outputs
+        final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
+        final_outputs = self.activation_function(final_inputs)
+        #Error (target-actual)
+        output_errors = targets - final_outputs
 
-		hidden_errors = numpy.dot(self.weight_hidden_output.T, output_errors)
+        hidden_errors = numpy.dot(self.weight_hidden_output.T, output_errors)
+        print("Error:", hidden_errors)
 
-		self.weight_hidden_output += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
-		self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
+        self.weight_hidden_output += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
+        self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
 
-	def query(self, inputs_list):
+    def query(self, inputs_list):
 
-		#Convert inputs list to 2d array
-		inputs = numpy.array(inputs_list, ndmin=2).T
+        #Convert inputs list to 2d array
+        inputs = numpy.array(inputs_list, ndmin=2).T
 
-		#Calculate signals into hidden layer
-		hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
-		hidden_outputs = self.activation_function(hidden_inputs)
+        #Calculate signals into hidden layer
+        hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
+        hidden_outputs = self.activation_function(hidden_inputs)
 
-		#Calculate signals into final output later
-		final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
+        #Calculate signals into final output later
+        final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
 
-		#Calculate the signals emerging from the final layer
-		final_outputs = self.activation_function(final_inputs)
+        #Calculate the signals emerging from the final layer
+        final_outputs = self.activation_function(final_inputs)
 
-		return final_outputs
+        return final_outputs
 
 #Declare neural network parameters
 input_nodes = 784
