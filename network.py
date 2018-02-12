@@ -11,7 +11,7 @@ class neuralNetwork:
 		self.hnodes = hiddennodes
 		self.onodes = outputnodes
 		self.lrate = learningrate
-
+ 
 		#Initailize matrices for weights between the hidden layer and input layer as well as 
 		#the output layer and the hidden later
 		self.weight_input_hidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
@@ -59,7 +59,7 @@ class neuralNetwork:
 input_nodes = 784
 hidden_nodes = 100
 output_nodes = 10
-learning_rate = 0.3
+learning_rate = float(input("Learning rate: "))
 
 n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
@@ -69,7 +69,7 @@ training_data_file.close()
 
 #Train the neural network
 #Epochs is the number of times the training data set is used for training
-epochs = 10
+epochs = int(input("Amount of epochs: "))
 
 print("Training...")
 for e in range(epochs):
@@ -102,34 +102,34 @@ print("Testing data...")
 #Go through all the records in the test data set
 for record in test_data_list:
     #Split the record by the ',' commas
-	all_values = record.split(',')
+    all_values = record.split(',')
     #Correct answer is first value
-	correct_label = int(all_values[0])
+    correct_label = int(all_values[0])
     #Scale and shift the inputs
-	inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+    inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
     #Query the network
-	outputs = n.query(inputs)
+    outputs = n.query(inputs)
     #The index of the highest value corresponds to the label
-	label = numpy.argmax(outputs)
-	print("Network's answer:", label)
-	print("Correct label:", correct_label)
-    #Append correct or incorrect to list
-	if (label == correct_label):
-        #Network's answer matches correct answer, add 1 to scorecard
-		scorecard.append(1)
-		correct = correct + 1
-	else:
-        #Network's answer doesn't match correct answer, add 0 to scorecard
-		scorecard.append(0)
-		pass
+    label = numpy.argmax(outputs)
+    print("Network's answer:", label)
+    print("Correct label:", correct_label)
+    
+    # Display correct letter
+    #all_values = test_data_list[num].split(',')
+    #image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
+    #matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='none')
+    #matplotlib.pyplot.show()
+    #num = num+1
 
-	#Display correct letter
-	# all_values = test_data_list[num].split(',')
-	# image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
-	# matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='None')
-	# matplotlib.pyplot.show()
-	# time.sleep(1.0)
-	num = num+1
-	pass
+    #Append correct or incorrect to list
+    if (label == correct_label):
+        #Network's answer matches correct answer, add 1 to scorecard
+    	scorecard.append(1)
+    	correct = correct + 1
+    else:
+        #Network's answer doesn't match correct answer, add 0 to scorecard
+    	scorecard.append(0)
+    	pass
+    pass
 
 print(correct/10000)
