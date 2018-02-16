@@ -2,7 +2,6 @@ import numpy
 import math
 import matplotlib.pyplot
 import scipy.special
-import time
 
 #Neural network definition
 class neuralNetwork:
@@ -38,7 +37,6 @@ class neuralNetwork:
         self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
 
     def query(self, inputs_list):
-
         #Convert inputs list to 2d array
         inputs = numpy.array(inputs_list, ndmin=2).T
 
@@ -54,84 +52,91 @@ class neuralNetwork:
 
         return final_outputs
 
-#Declare neural network parameters
-input_nodes = 784
-hidden_nodes = 100
-output_nodes = 10
-learning_rate = float(input("Learning rate: "))
+    def epoch(self, epochs, training_data_list, output_nodes):
+        #Train the neural network
+        #Epochs is the number of times the training data set is used for training
+        print("Training...")
+        for e in range(epochs):
+            #Go through all records in the training data set
+            for record in training_data_list:
+                #Split the record by the ',' commas
+                all_values = record.split(',')
+                #Scale and shift the inputs
+                inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+                #Create the target output values (all 0.01, except the desired label which is 0.99)
+                targets = numpy.zeros(output_nodes) + 0.01
+                #All_values[0] is the target label for this record
+                targets[int(all_values[0])] = 0.99
+                self.train(inputs, targets)
+                pass
+            pass
+        print("Done training...")
 
-n = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+    def testWithoutImage(self, test_data_list):
+        print("Testing data...")
+        correct = 0
+        #Go through all the records in the test data set
+        for record in test_data_list:
+            #Split the record by the ',' commas
+            all_values = record.split(',')
+            #Correct answer is first value
+            correct_label = int(all_values[0])
+            #Scale and shift the inputs
+            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+            #Query the network
+            outputs = self.query(inputs)
+            #The index of the highest value corresponds to the label
+            label = numpy.argmax(outputs)
+            print("Network's answer:", label)
+            print("Correct label:", correct_label)
 
-training_data_file = open("mnist_train.csv", 'r')
-training_data_list = training_data_file.readlines()
-training_data_file.close()
+            #Test if nn was correct
+            if (label == correct_label):
+                #Network's answer matches correct answer
+                correct = correct + 1
+            else:
+                #Network's answer doesn't match correct answer
+                pass
+            pass
+        print(correct/10000)
 
-#Train the neural network
-#Epochs is the number of times the training data set is used for training
-epochs = int(input("Amount of epochs: "))
-time_start = time.time()
-print("Training...")
-for e in range(epochs):
-    #Go through all records in the training data set
-    for record in training_data_list:
-        #Split the record by the ',' commas
-        all_values = record.split(',')
-        #Scale and shift the inputs
-        inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-        #Create the target output values (all 0.01, except the desired label which is 0.99)
-        targets = numpy.zeros(output_nodes) + 0.01
-        #All_values[0] is the target label for this record
-        targets[int(all_values[0])] = 0.99
-        n.train(inputs, targets)
-        pass
-    pass
+    def testWithImage(self, test_data_list):
+        print("Testing data...")
+        correct = 0
+        num = 0
+        #Go through all the records in the test data set
+        for record in test_data_list:
+            #Split the record by the ',' commas
+            all_values = record.split(',')
+            #Correct answer is first value
+            correct_label = int(all_values[0])
+            #Scale and shift the inputs
+            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+            #Query the network
+            outputs = self.query(inputs)
+            #The index of the highest value corresponds to the label
+            label = numpy.argmax(outputs)
+            print("Network's answer:", label)
+            print("Correct label:", correct_label)
 
-print("Done training...")
-time_elapsed = time.time()-time_start
-print("Program took {:d} minutes and {:.2f} seconds".format(int(time_elapsed//60), time_elapsed%60))
-prompt = input("Press any key test trained model")
+            # Display correct letter
+            all_values = test_data_list[num].split(',')
+            image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
+            matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='none')
+            matplotlib.pyplot.show()
+            num = num+1
 
-#Load the mnist test data CSV file into a list
-test_data_file = open("mnist_test.csv", 'r')
-test_data_list = test_data_file.readlines()
-test_data_file.close()
+            #Test if nn was correct
+            if (label == correct_label):
+                #Network's answer matches correct answer
+                correct = correct + 1
+            else:
+                #Network's answer doesn't match correct answer
+                pass
+            pass
+        print(correct/10000)
 
-#Scorecard for how well the network performs, initially empty
-scorecard = []
-correct = 0
-num = 0
-print("Testing data...")
-#Go through all the records in the test data set
-for record in test_data_list:
-    #Split the record by the ',' commas
-    all_values = record.split(',')
-    #Correct answer is first value
-    correct_label = int(all_values[0])
-    #Scale and shift the inputs
-    inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-    #Query the network
-    outputs = n.query(inputs)
-    #The index of the highest value corresponds to the label
-    label = numpy.argmax(outputs)
-    print("Network's answer:", label)
-    print("Correct label:", correct_label)
-
-    # Display correct letter
-    #all_values = test_data_list[num].split(',')
-    #image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
-    #matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='none')
-    #matplotlib.pyplot.show()
-    #num = num+1
-
-    #Append correct or incorrect to list
-    if (label == correct_label):
-        #Network's answer matches correct answer, add 1 to scorecard
-        scorecard.append(1)
-        correct = correct + 1
-    else:
-        #Network's answer doesn't match correct answer, add 0 to scorecard
-        scorecard.append(0)
-        pass
-    pass
-
-print(correct/10000)
+    def save(self):
+        #Save weights for neural network
+        self.weight_hidden_output.savetxt('hiddenoutput.csv', a, fmt='%d', delimiter=",")
+        self.weight_input_hidden.savetxt('inputhidden.csv', a, fmt='%d', delimiter=",")
