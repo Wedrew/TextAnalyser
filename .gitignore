@@ -33,3 +33,7 @@ Temporary Items
 .idea
 cmake-build-debug
 cmake-build-default
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
