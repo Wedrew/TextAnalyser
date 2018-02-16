@@ -28,3 +28,8 @@ prompt = input("Model trained... \nPress any key to test")
 
 #After model is trained test data
 nn.testWithoutImage(test_data_list)
+
+#Ask to save neural network
+save = input("Save neural network?: ")
+if save.lower() == "yes":
+	nn.save()
