@@ -110,7 +110,7 @@ class neuralNetwork:
             all_values = record.split(',')
             #Correct answer is first value
             correct_label = int(all_values[0])
-            #Scale and shift the inputs
+            #Scale a nd shift the inputs
             inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
             #Query the network
             outputs = self.query(inputs)
@@ -138,5 +138,5 @@ class neuralNetwork:
 
     def save(self):
         #Save weights for neural network
-        self.weight_hidden_output.savetxt('hiddenoutput.csv', a, fmt='%d', delimiter=",")
-        self.weight_input_hidden.savetxt('inputhidden.csv', a, fmt='%d', delimiter=",")
+        numpy.save('hiddenoutput.npy', self.weight_hidden_output)
+        numpy.save('inputhidden.npy', self.weight_input_hidden)
