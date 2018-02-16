@@ -122,7 +122,7 @@ class neuralNetwork:
             # Display correct letter
             all_values = test_data_list[num].split(',')
             image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
-            matplotlib.pyplot.imshow(image_array, cmap='Greys', interpolation='none')
+            matplotlib.pyplot.imshow(image_array, cmap="Greys", interpolation="none")
             matplotlib.pyplot.show()
             num = num+1
 
@@ -136,7 +136,13 @@ class neuralNetwork:
             pass
         print(correct/10000)
 
+    def load(self, wih, who):
+        #Assign loaded network
+        self.weight_input_hidden = wih
+        self.weight_hidden_output = who
+
     def save(self):
         #Save weights for neural network
-        numpy.save('hiddenoutput.npy', self.weight_hidden_output)
-        numpy.save('inputhidden.npy', self.weight_input_hidden)
+        numpy.save("hiddenoutput.npy", self.weight_hidden_output)
+        numpy.save("inputhidden.npy", self.weight_input_hidden)
+        print("Networks successfully saved")

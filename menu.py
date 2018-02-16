@@ -16,20 +16,38 @@ training_data_file.close()
 input_nodes = 784
 hidden_nodes = 100
 output_nodes = 10
-learning_rate = float(input("Learning rate: "))
 
-#Declare neural network
-nn = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+#Ask whether to train or load network
+train = input("Train or load network?: ")
+if train.lower() == "train":
+	learning_rate = float(input("Learning rate: "))
 
-#Get epochs and train network
-epochs = int(input("Amount of epochs: "))
-nn.epoch(epochs, training_data_list, output_nodes)
-prompt = input("Model trained... \nPress any key to test")
+	#Declare neural network
+	nn = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
-#After model is trained test data
-nn.testWithoutImage(test_data_list)
+	#Get epochs and train network
+	epochs = int(input("Amount of epochs: "))
+	nn.epoch(epochs, training_data_list, output_nodes)
+	prompt = input("Model trained... \nPress any key to test")
 
-#Ask to save neural network
-save = input("Save neural network?: ")
-if save.lower() == "yes":
-	nn.save()
+	#After model is trained test data
+	nn.testWithoutImage(test_data_list)
+
+	#Ask to save neural network
+	save = input("Save neural network?: ")
+	if save.lower() == "yes":
+		nn.save()
+elif train.lower() == "load":
+	#Load connection weights
+	wih = numpy.load("inputhidden.npy")
+	who = numpy.load("hiddenoutput.npy")
+
+	#Declare neural network
+	nn = neuralNetwork(input_nodes, hidden_nodes, output_nodes, 0.0)
+
+	#Load data into model
+	nn.load(wih, who)
+
+	#After model is trained test data
+	nn.testWithoutImage(test_data_list)
+
