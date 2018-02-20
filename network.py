@@ -1,11 +1,12 @@
 import numpy
 import math
+import os
 import matplotlib.pyplot
 import scipy.special
 
 #Neural network definition
 class neuralNetwork:
-    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
+    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate=0.0):
         self.inodes = inputnodes
         self.hnodes = hiddennodes
         self.onodes = outputnodes
@@ -72,7 +73,7 @@ class neuralNetwork:
             pass
         print("Done training...")
 
-    def testWithoutImage(self, test_data_list):
+    def test(self, test_data_list):
         print("Testing data...")
         correct = 0
         #Go through all the records in the test data set
@@ -100,49 +101,12 @@ class neuralNetwork:
             pass
         print(correct/10000)
 
-    def testWithImage(self, test_data_list):
-        print("Testing data...")
-        correct = 0
-        num = 0
-        #Go through all the records in the test data set
-        for record in test_data_list:
-            #Split the record by the ',' commas
-            all_values = record.split(',')
-            #Correct answer is first value
-            correct_label = int(all_values[0])
-            #Scale a nd shift the inputs
-            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
-            #Query the network
-            outputs = self.query(inputs)
-            #The index of the highest value corresponds to the label
-            label = numpy.argmax(outputs)
-            print("Network's answer:", label)
-            print("Correct label:", correct_label)
-
-            # Display correct letter
-            all_values = test_data_list[num].split(',')
-            image_array= numpy.asfarray(all_values[1:]).reshape((28,28))
-            matplotlib.pyplot.imshow(image_array, cmap="Greys", interpolation="none")
-            matplotlib.pyplot.show()
-            num = num+1
-
-            #Test if nn was correct
-            if (label == correct_label):
-                #Network's answer matches correct answer
-                correct = correct + 1
-            else:
-                #Network's answer doesn't match correct answer
-                pass
-            pass
-        print(correct/10000)
-
-    def load(self, wih, who):
+    def load(self, wih, who): #Check if folder containing all weights exists and load it
         #Assign loaded network
         self.weight_input_hidden = wih
         self.weight_hidden_output = who
 
-    def save(self):
-        #Save weights for neural network
-        numpy.save("hiddenoutput.npy", self.weight_hidden_output)
-        numpy.save("inputhidden.npy", self.weight_input_hidden)
+    def save(self, path): #Save weights into folder using networkname
+        numpy.save(str(path) + "layer1.npy", self.weight_input_hidden)
+        numpy.save(str(path) + "layer2.npy", self.weight_hidden_output)
         print("Networks successfully saved")
