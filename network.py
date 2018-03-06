@@ -15,108 +15,123 @@ class neuralNetwork:
 
         #Initailize matrices for weights between the hidden layer and input layer as well as 
         #the output layer and the hidden later
-        self.weight_input_hidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
-        self.weight_hidden_output = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
+        self.weightInputHidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
+        self.weightHiddenOutput = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
 
         #Activation function
-        self.activation_function = lambda x: scipy.special.expit(x)
+        self.activationFunction = lambda x: scipy.special.expit(x)
 
-    def train(self, inputs_list, targets_list):
-        inputs = numpy.array(inputs_list, ndmin=2).T
-        targets = numpy.array(targets_list, ndmin=2).T
+    def train(self, inputsList, targetsList):
+        inputs = numpy.array(inputsList, ndmin=2).T
+        targets = numpy.array(targetsList, ndmin=2).T
 
-        hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
-        hidden_outputs = self.activation_function(hidden_inputs)
+        hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
+        hiddenOutputs = self.activationFunction(hiddenInputs)
 
-        final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
-        final_outputs = self.activation_function(final_inputs)
+        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs)
+        finalOutputs = self.activationFunction(finalInputs)
         #Error (target-actual)
-        output_errors = targets - final_outputs
+        outputErrors = targets - finalOutputs
 
-        hidden_errors = numpy.dot(self.weight_hidden_output.T, output_errors)
+        hiddenErrors = numpy.dot(self.weightHiddenOutput.T, outputErrors)
 
-        self.weight_hidden_output += self.lrate * numpy.dot((output_errors * final_outputs * (1.0-final_outputs)), numpy.transpose(hidden_outputs))
-        self.weight_input_hidden += self.lrate * numpy.dot((hidden_errors * hidden_outputs * (1.0-hidden_outputs)), numpy.transpose(inputs))
+        self.weightHiddenOutput += self.lrate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), numpy.transpose(hiddenOutputs))
+        self.weightInputHidden += self.lrate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), numpy.transpose(inputs))
 
-    def query(self, inputs_list):
+    def query(self, inputsList):
         #Convert inputs list to 2d array
-        inputs = numpy.array(inputs_list, ndmin=2).T
+        inputs = numpy.array(inputsList, ndmin=2).T
 
         #Calculate signals into hidden layer
-        hidden_inputs = numpy.dot(self.weight_input_hidden, inputs)
-        hidden_outputs = self.activation_function(hidden_inputs)
+        hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
+        hiddenOutputs = self.activationFunction(hiddenInputs)
 
         #Calculate signals into final output later
-        final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
+        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs)
 
         #Used to determine networks confidence
-        self.softmax_outputs = final_inputs
+        self.softmaxOutputs = finalInputs
 
         #Calculate the signals emerging from the final layer
-        final_outputs = self.activation_function(final_inputs)
+        finalOutputs = self.activationFunction(finalInputs)
 
-        return final_outputs
+        return finalOutputs
 
-    def epoch(self, epochs, training_data_list, output_nodes):
+    def epoch(self, epochs, trainingDataList, outputNodes):
         #Train the neural network
         #Epochs is the number of times the training data set is used for training
         print("Training...")
         for e in range(epochs):
             #Go through all records in the training data set
-            for record in training_data_list:
+            for record in trainingDataList:
                 #Split the record by the ',' commas
-                all_values = record.split(',')
+                allValues = record.split(',')
                 #Scale and shift the inputs
-                inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+                inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
                 #Create the target output values (all 0.01, except the desired label which is 0.99)
-                targets = numpy.zeros(output_nodes) + 0.01
+                targets = numpy.zeros(outputNodes) + 0.01
                 #All_values[0] is the target label for this record
-                targets[int(all_values[0])] = 0.99
+                targets[int(allValues[0])] = 0.99
                 self.train(inputs, targets)
                 pass
             pass
         print("Done training...")
 
-    def test(self, test_data_list):
+    def test(self, testDataList):
         print("Testing data...")
         correct = 0
+        sizeDataList = 0
+        showImageNum = 0
+        #Gets total digits to be entered
+        for record in testDataList:
+            sizeDataList += 1
+
         #Go through all the records in the test data set
-        for record in test_data_list:
+        for record in testDataList:
             #Split the record by the ',' commas
-            all_values = record.split(',')
+            allValues = record.split(',')
             #Correct answer is first value
-            correct_label = int(all_values[0])
+            correctLabel = int(allValues[0])
             #Scale and shift the inputs
-            inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+            inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
             #Query the network
             outputs = self.query(inputs)
             #The index of the highest value corresponds to the label
             label = numpy.argmax(outputs)
-            certainty = self.softmax(self.softmax_outputs)
+            #Produces the softmax "probability" of the network
+            certainty = self.softmax(self.softmaxOutputs)
+
             print("-----------------------------")
             print("Network's answer:", label)
-            print("Correct label:", correct_label)
-            print("Certainty:", certainty*100, "%")
+            print("Correct label:", correctLabel)
+            print("Certainty: {}%".format(certainty*100))
             print("-----------------------------")
 
             #Test if nn was correct
-            if (label == correct_label):
+            if (label == correctLabel):
                 #Network's answer matches correct answer
                 correct = correct + 1
             else:
-                #Network's answer doesn't match correct answer
+                #Network's answer does not match correct answer
+                #Show incorrectly guess image
                 pass
-            pass
-        print(correct/10000)
+                # allValues = testDataList[showImageNum].split(',')
+                # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
+                # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+                # matplotlib.pyplot.show()
+            
+            showImageNum += 1
+
+        print("Performance: {}%".format((correct/sizeDataList)*100))
 
     def load(self, wih, who): #Check if folder containing all weights exists and load it
         #Assign loaded network
-        self.weight_input_hidden = wih
-        self.weight_hidden_output = who
+        self.weightInputHidden = wih
+        self.weightHiddenOutput = who
 
     def save(self): #Save weights into folder using networkname
-        numpy.save("layer1.npy", self.weight_input_hidden)
-        numpy.save("layer2.npy", self.weight_hidden_output)
+        numpy.save("layer1.npy", self.weightInputHidden)
+        numpy.save("layer2.npy", self.weightHiddenOutput)
         print("Networks successfully saved")
 
     def softmax(self, x): #Compute softmax
