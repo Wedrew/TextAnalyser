@@ -4,75 +4,24 @@ import os
 import time
 import matplotlib.pyplot as plt
 import scipy.special
+import PIL
+import string
 
 #Maps letters to numbers for input to neural network
-numLetterDict = {
-    'a':10,
-    'b':11,
-    'c':12,
-    'd':13,
-    'e':14,
-    'f':15,
-    'g':16,
-    'h':17,
-    'i':18,
-    'j':19,
-    'k':20,
-    'l':21,
-    'm':22,
-    'n':23,
-    'o':24,
-    'p':25,
-    'q':26,
-    'r':27,
-    's':28,
-    't':29,
-    'u':30,
-    'v':31,
-    'w':32,
-    'x':33,
-    'y':34,
-    'z':35,
-    'A':36,
-    'B':37,
-    'C':38,
-    'D':39,
-    'E':40,
-    'F':41,
-    'G':42,
-    'H':43,
-    'I':44,
-    'J':45,
-    'K':46,
-    'L':47,
-    'M':48,
-    'N':49,
-    'O':50,
-    'P':51,
-    'Q':52,
-    'R':53,
-    'S':54,
-    'T':55,
-    'U':56,
-    'V':57,
-    'W':58,
-    'X':59,
-    'Y':60,
-    'Z':61,
-}
+letterMappings = dict(zip(string.ascii_letters, range(1, 53)))
 
 #Neural network definition
 class neuralNetwork:
-    def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate=0.0):
-        self.inodes = inputnodes
-        self.hnodes = hiddennodes
-        self.onodes = outputnodes
-        self.lrate = learningrate
+    def __init__(self, inputNodes, hiddenNodes, outputNodes, learningRate=0.0):
+        self.inputNodes = inputNodes
+        self.hiddenNodes = hiddenNodes
+        self.outputNodes = outputNodes
+        self.learningRate = learningRate
 
         #Initailize matrices for weights between the hidden layer and input layer as well as 
         #the output layer and the hidden later
-        self.weightInputHidden = numpy.random.normal(0.0, pow(self.hnodes, -0.5), (self.hnodes, self.inodes))
-        self.weightHiddenOutput = numpy.random.normal(0.0, pow(self.onodes, -0.5), (self.onodes, self.hnodes))
+        self.weightInputHidden = numpy.random.normal(0.0, pow(self.hiddenNodes, -0.5), (self.hiddenNodes, self.inputNodes))
+        self.weightHiddenOutput = numpy.random.normal(0.0, pow(self.outputNodes, -0.5), (self.outputNodes, self.hiddenNodes))
 
         #Activation function
         self.activationFunction = lambda x: scipy.special.expit(x)
@@ -91,8 +40,8 @@ class neuralNetwork:
 
         hiddenErrors = numpy.dot(self.weightHiddenOutput.T, outputErrors)
 
-        self.weightHiddenOutput += self.lrate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), numpy.transpose(hiddenOutputs))
-        self.weightInputHidden += self.lrate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), numpy.transpose(inputs))
+        self.weightHiddenOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), numpy.transpose(hiddenOutputs))
+        self.weightInputHidden += self.learningRate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), numpy.transpose(inputs))
 
     def query(self, inputsList):
         #Convert inputs list to 2d array
@@ -113,7 +62,7 @@ class neuralNetwork:
 
         return finalOutputs
 
-    def epoch(self, epochs, trainingDataList, outputNodes):
+    def epoch(self, epochs, trainingDataList):
         #Train the neural network
         #Epochs is the number of times the training data set is used for training
         print("Training...")
@@ -125,7 +74,7 @@ class neuralNetwork:
                 #Scale and shift the inputs
                 inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
                 #Create the target output values (all 0.01, except the desired label which is 0.99)
-                targets = numpy.zeros(outputNodes) + 0.01
+                targets = numpy.zeros(self.outputNodes) + 0.01
                 #All_values[0] is the target label for this record
                 targets[int(allValues[0])] = 0.99
                 self.train(inputs, targets)
@@ -162,6 +111,12 @@ class neuralNetwork:
             print("Correct label:", correctLabel)
             print("Certainty: {}%".format(certainty*100))
             print("-----------------------------")
+            
+            #Uncomment to see text
+            #allValues = testDataList[showImageNum].split(',')
+            #imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
+            # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+            # matplotlib.pyplot.show()
 
             #Test if nn was correct
             if (label == correctLabel):
@@ -169,13 +124,8 @@ class neuralNetwork:
                 correct = correct + 1
             else:
                 #Network's answer does not match correct answer
-                #Show incorrectly guess image
                 pass
-                # allValues = testDataList[showImageNum].split(',')
-                # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
-                # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-                # matplotlib.pyplot.show()
-            
+                
             showImageNum += 1
 
         print("Performance: {}%".format((correct/sizeDataList)*100))

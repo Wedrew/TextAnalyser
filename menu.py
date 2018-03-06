@@ -34,7 +34,7 @@ if train.lower() == "train":
 
 	#Get epochs and train network
 	epochs = int(input("Amount of epochs: "))
-	nn.epoch(epochs, trainingDataList, outputNodes)
+	nn.epoch(epochs, trainingDataList)
 	prompt = input("Model trained... \nPress any key to test")
 
 	#After model is trained test data
