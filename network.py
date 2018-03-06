@@ -1,6 +1,7 @@
 import numpy
 import math
 import os
+import time
 import matplotlib.pyplot
 import scipy.special
 
@@ -48,6 +49,9 @@ class neuralNetwork:
         #Calculate signals into final output later
         final_inputs = numpy.dot(self.weight_hidden_output, hidden_outputs)
 
+        #Used to determine networks confidence
+        self.softmax_outputs = final_inputs
+
         #Calculate the signals emerging from the final layer
         final_outputs = self.activation_function(final_inputs)
 
@@ -88,8 +92,12 @@ class neuralNetwork:
             outputs = self.query(inputs)
             #The index of the highest value corresponds to the label
             label = numpy.argmax(outputs)
+            certainty = self.softmax(self.softmax_outputs)
+            print("-----------------------------")
             print("Network's answer:", label)
             print("Correct label:", correct_label)
+            print("Certainty:", certainty*100, "%")
+            print("-----------------------------")
 
             #Test if nn was correct
             if (label == correct_label):
@@ -106,7 +114,10 @@ class neuralNetwork:
         self.weight_input_hidden = wih
         self.weight_hidden_output = who
 
-    def save(self, path): #Save weights into folder using networkname
-        numpy.save(str(path) + "layer1.npy", self.weight_input_hidden)
-        numpy.save(str(path) + "layer2.npy", self.weight_hidden_output)
+    def save(self): #Save weights into folder using networkname
+        numpy.save("layer1.npy", self.weight_input_hidden)
+        numpy.save("layer2.npy", self.weight_hidden_output)
         print("Networks successfully saved")
+
+    def softmax(self, x): #Compute softmax
+        return numpy.max(numpy.exp(x) / float(sum(numpy.exp(x))))
