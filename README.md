@@ -1,8 +1,8 @@
 # TextAnalyser
-Utilizes a forward feed neural network to predict text for 28x28 images.
+Utilizes a forward feed neural network to predict text for 28x28 images. Allows training, saving, running, and loading networks in .npy format. Testing data must be in csv format.
 
 # Example Screenshots:
-![ScreenShot](https://i.imgur.com/cHFbVgk.png)
+![ScreenShot](https://i.imgur.com/9m7dtNu.png)
 
 # Compiling
 Linux:
