@@ -1,5 +1,11 @@
 from PIL import Image
 
+#Utility to find all images within a folder and combine them into one csv file
+#Searches every subdirectory of the folder you give
+#Example ---> python buildimagedata.py -p PathToYourFolderWithImages -s FolderToSaveSvgTo
+def createCsv(loadPath, savePath):
+
+
 image = Image.open("5A_00006.png")
 pixelData = image.load()
 width, height = image.size

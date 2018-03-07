@@ -1,11 +1,11 @@
 import numpy
 import math
 import os
-import time
 import matplotlib.pyplot as plt
 import scipy.special
 import PIL
 import string
+from datetime import datetime
 
 #Maps letters to numbers for input to neural network
 letterMappings = dict(zip(string.ascii_letters, range(1, 53)))
@@ -65,6 +65,7 @@ class neuralNetwork:
     def epoch(self, epochs, trainingDataList):
         #Train the neural network
         #Epochs is the number of times the training data set is used for training
+        startTime = datetime.now()
         print("Training...")
         for e in range(epochs):
             #Go through all records in the training data set
@@ -81,6 +82,7 @@ class neuralNetwork:
                 pass
             pass
         print("Done training...")
+        print("Took {}".format(datetime.now() - startTime))
 
     def test(self, testDataList):
         print("Testing data...")
