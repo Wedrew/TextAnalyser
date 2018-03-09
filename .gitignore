@@ -22,6 +22,9 @@ Icon
 #To stop data files
 *.csv
 
+#Stop test networks
+savednetworks/*.*/*.*
+
 # Directories potentially created on remote AFP share
 .AppleDB
 .AppleDesktop
@@ -38,3 +41,4 @@ cmake-build-default
 __pycache__/
 *.py[cod]
 *.npy
+

@@ -14,6 +14,6 @@ def createFolders(rootDir):
             os.makedirs(rootDir + "/data/training")
 
 def printFiles(rootDir):
-	for root, dirs, files in os.walk(rootDir + "/data/training/"):  
+	for root, dirs, files in os.walk(rootDir):  
 		for filename in files:
 			print("Available training files: ", filename)
