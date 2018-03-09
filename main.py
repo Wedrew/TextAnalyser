@@ -1,5 +1,7 @@
 from sys import argv
-from menu import loadMenu
+from src.menu import loadMenu
+from src.helper import *
+import os
 
 def getopts(argv):
     opts = {}
@@ -10,6 +12,11 @@ def getopts(argv):
     return opts
 
 if __name__ == '__main__':
+	#Get working directory
+	rootDir = os.getcwd()
+	#Create necessary folders
+	createFolders(rootDir)
+
 	myargs = getopts(argv)
 	if '-p' in myargs and '-s' in myargs:
 		print(myargs['-p'])
@@ -17,11 +24,8 @@ if __name__ == '__main__':
 		rootDir = myargs['-p']
 		saveSir = myargs['-s']
 		#Call build image data
-
 	elif not myargs:
 		#Load menu function
-		loadMenu()
-
+		loadMenu(rootDir)
 	else:
 		print("Incorrect arguments")
-		break
