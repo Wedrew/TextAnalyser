@@ -7,23 +7,6 @@ from src.helper import *
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
-
-	#info = getComputerInfo()
-
-	#Load the mnist test data CSV file into a list
-	#CSV needs to be formated as such - First element in csv is the numbers value
-	#then everything after corresponds to the images pixel value 0-255 separated by commas
-	#a new line indicates a new image
-	testDataFile = open(rootDir + "/data/testing/mnist_test.csv", 'r')
-	testDataList = testDataFile.readlines()
-	testDataFile.close()
-
-	#Load the mnist training data CSV file into a list
-	#This is where you should 
-	trainingDataFile = open(rootDir + "/data/training/mnist_train.csv", 'r')
-	trainingDataList = trainingDataFile.readlines()
-	trainingDataFile.close()
-
 	while True:
 		#Ask whether to train or load network
 		menuSelection = input("Train, load or quit: ")
@@ -46,7 +29,7 @@ def loadMenu(rootDir):
 				except (ValueError, AssertionError, EOFError) as e:	
 					print("Try again")
 
-			printFiles(rootDir)
+			printFiles(rootDir + "/data/training/")
 
 			trainingDataFile = input("Enter name of training data: ")
 			if os.path.exists(rootDir + "/data/training/" + trainingDataFile + ".csv"):
