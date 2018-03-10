@@ -23,7 +23,6 @@ Icon
 *.csv
 
 #Stop test networks
-savednetworks/*.*/*.*
 
 # Directories potentially created on remote AFP share
 .AppleDB

@@ -9,7 +9,7 @@ from models.network import NeuralNetwork
 def loadMenu(rootDir):
 	while True:
 		#Ask whether to train or load network
-		menuSelection = input("Train, load or quit: ")
+		menuSelection = input("Train, load or quit anytime to exit: ")
 		if menuSelection.lower() == "train":
 			#User input validation
 			while True:
@@ -29,57 +29,57 @@ def loadMenu(rootDir):
 				except (ValueError, AssertionError, EOFError) as e:	
 					print("Try again")
 
-			printFiles(rootDir + "/data/training/")
-
-			trainingDataFile = input("Enter name of training data: ")
-			if os.path.exists(rootDir + "/data/training/" + trainingDataFile + ".csv"):
-				#Load the mnist training data CSV file into a list
-				#This is where you should 
-				trainingDataFile = open(rootDir + "/data/training/" + trainingDataFile + ".csv", 'r')
-				trainingDataList = trainingDataFile.readlines()
-				trainingDataFile.close()
-			else:
-				print("Does not exist")
-
-			#Declare neural network
-			nn = NeuralNetwork(inputNodes, hiddenNodes, outputNodes, learningRate)
-			#Train neural network
-			nn.epoch(epochs, trainingDataList)
-			print("Network trained")
-
-
-			testDataFile = open(rootDir + "/data/testing/mnist_test.csv", 'r')
-			testDataList = testDataFile.readlines()
-			testDataFile.close()
-
-			#After model is trained test data
-			prompt = input("Model trained... \nPress any key to test")
-			nn.testBatch(testDataList)
 			while True:
-				#Ask to save neural network
-				save = input("Save network? (yes/no): ")
+				printFiles(rootDir + "/data/training/")
+				trainingDataFile = input("Enter name of training file: ")
+				try:
+					if os.path.exists(rootDir + "/data/training/" + trainingDataFile):
+						trainingDataFile = open(rootDir + "/data/training/" + trainingDataFile, 'r')
+						trainingDataList = trainingDataFile.readlines()
+						trainingDataFile.close()
+						#Declare neural network
+						nn = NeuralNetwork(inputNodes, hiddenNodes, outputNodes, learningRate)
+						#Train neural network
+						nn.epoch(epochs, trainingDataList)
+						print("Network trained")
 
-				if save.lower() == "yes":
-					nn.save(rootDir)
-					break
-				elif save.lower() == "no":
-					break
-				else:
+						while True:
+							#Ask to save neural network
+							save = input("Save network? (yes/no): ")
+							if save.lower() == "yes":
+								nn.save(rootDir)
+								break
+							elif save.lower() == "no":
+								break
+							else:
+								print("Try again")
+						break
+					elif (trainingDataFile.lower() == "quit"):
+						break
+					else:
+						print("Does not exist")
+				except (EOFError) as e:
 					print("Try again")
-			break;
 		elif menuSelection.lower() == "load":	
-			#Declare neural network ()
-			nn = NeuralNetwork()
-
-			#Load data into model
-			nn.load(rootDir)
-
-			#Letter must be an array
-			data = []
-
-			#After model is trained test data
-			nn.testLetter(data)
+			while True:
+				nn = NeuralNetwork()
+				nn.load(rootDir)
+				while True:
+					printFiles(rootDir + "/data/testing/")
+					testingDataFile = input("Enter name of testing file: ")
+					if os.path.exists(rootDir + "/data/testing/" + testingDataFile):
+						testingDataFile = open(rootDir + "/data/testing/" + testingDataFile, 'r')
+						testingDataList = testingDataFile.readlines()
+						testingDataFile.close()
+						#Declare neural network
+						nn.testBatch(testingDataList)
+						break
+					elif (testingDataFile.lower() == "quit"):
+						break
+					else:
+						print("Try again")
+				break
 		elif menuSelection.lower() == "quit":
-			break;
+			break
 		else:
 			print("Try again")
