@@ -10,7 +10,7 @@ import pyopencl.array as pycl_array
 from datetime import datetime
 from sys import exit
 from src.helper import *
-from data.mappings import *
+from data.mappings.mappings import *
 from src.graphicshelper import *
 
 #Neural network definition
