@@ -14,8 +14,16 @@ def createFolders(rootDir):
             os.makedirs(rootDir + "/data/training")
 
 def printFiles(rootDir):
+    print("******************************")
     print("Available files: ")
     for root, dirs, files in os.walk(rootDir):  
         for filename in files:
             if not filename.startswith('.'):
                 print(filename)
+    print("******************************")
+
+def printFolders(rootDir):
+    print("******************************")
+    print("Available folders: ")
+    for folder in os.listdir(rootDir):
+        print(folder)

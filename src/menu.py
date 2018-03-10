@@ -2,14 +2,15 @@ import numpy
 import os
 import sys
 import scipy.misc
-import src.graphicshelper
+from src.graphicshelper import GetComputerInfo
 from src.helper import *
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
+	info = GetComputerInfo()
 	while True:
 		#Ask whether to train or load network
-		menuSelection = input("Train, load or quit anytime to exit: ")
+		menuSelection = input("Train, load or quit: ")
 		if menuSelection.lower() == "train":
 			#User input validation
 			while True:
@@ -30,9 +31,10 @@ def loadMenu(rootDir):
 					print("Try again")
 
 			while True:
-				printFiles(rootDir + "/data/training/")
-				trainingDataFile = input("Enter name of training file: ")
 				try:
+					printFiles(rootDir + "/data/training/")
+					trainingDataFile = input("Enter name of training file: ")
+					assert trainingDataFile != ""
 					if os.path.exists(rootDir + "/data/training/" + trainingDataFile):
 						trainingDataFile = open(rootDir + "/data/training/" + trainingDataFile, 'r')
 						trainingDataList = trainingDataFile.readlines()
@@ -42,7 +44,6 @@ def loadMenu(rootDir):
 						#Train neural network
 						nn.epoch(epochs, trainingDataList)
 						print("Network trained")
-
 						while True:
 							#Ask to save neural network
 							save = input("Save network? (yes/no): ")
@@ -58,27 +59,28 @@ def loadMenu(rootDir):
 						break
 					else:
 						print("Does not exist")
-				except (EOFError) as e:
+				except (EOFError, AssertionError) as e:
 					print("Try again")
 		elif menuSelection.lower() == "load":	
 			while True:
 				nn = NeuralNetwork()
 				nn.load(rootDir)
-				while True:
+				try:
 					printFiles(rootDir + "/data/testing/")
 					testingDataFile = input("Enter name of testing file: ")
+					assert testingDataFile != ""
 					if os.path.exists(rootDir + "/data/testing/" + testingDataFile):
 						testingDataFile = open(rootDir + "/data/testing/" + testingDataFile, 'r')
 						testingDataList = testingDataFile.readlines()
 						testingDataFile.close()
-						#Declare neural network
 						nn.testBatch(testingDataList)
 						break
 					elif (testingDataFile.lower() == "quit"):
 						break
 					else:
 						print("Try again")
-				break
+				except (EOFError, AssertionError) as e:
+					print("Try again")
 		elif menuSelection.lower() == "quit":
 			break
 		else:
