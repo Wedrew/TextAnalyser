@@ -9,7 +9,7 @@ import numpy as np
 #   margin width, starting line height, line spacing, and number of lines
 class Paper(object):
     def __init__(self):
-        self.pixels, self.image = getImage('testPaper.jpg')
+        self.pixels, self.image = getImage('data/images/testPaper.jpg')
         self.margin = getMargin(self)
         self.lineH, self.topLine = getLineData(self)
         self.numLines = (int)((self.pixels.shape[0] - self.topLine) / self.lineH)
@@ -24,6 +24,7 @@ class Paper(object):
         #   Contains (h,w) coords of current position in line: begins just above
         #   bottom line
         start = [self.topLine + (line+1) * self.lineH - 1, self.margin + tol]
+        print("Bottom of line computed to be at %s" %start[0])
         
         end = self.pixels.shape[1]     # end of line
         #   Until the end of the line, check for next word then next whitespace
@@ -56,8 +57,9 @@ class Paper(object):
 
         return words
 
-    #   Given a word, the paper, and current line, returns the word as a single string
-    def partitionWord(self, line, word):
+    #   Given a word, the paper, current line, and a NN to parse the word,
+    #   returns the word as a single string
+    def partitionWord(self, line, word, network):
         bot = self.lineH * line + self.topLine
         top = self.lineH * (line-1) + self.topLine
         start = word[0]
@@ -67,15 +69,16 @@ class Paper(object):
             maxConf = 0     # largest confidence of the NN for any end
             maxEnd = -1    # end of letter that maximizes NN confidence
             maxLetter = "#" # corresponding letter the NN sees
-            maxH = bot   # largest height containing entire current letter
+            maxH = bot-3   # smallest height containing entire current letter
 
             #   Try all widths of current letter "box" possible up to 28
             for end in range(max(word[1] - start + 1, 28)):
                 #   At end pixel laterally, check if letter needs more space by
                 #   moving downward until we hit a black pixel
                 pix = 255
-                currH = top
-                while pix == 255:
+                currH = top+2   # makes sure top line doesn't mess with loop
+                while pix == 255 and currH <= bot-3:
+                    #print(currH)
                     currH += 2
                     pix = self.pixels[currH][start+end]
                 currH -= 2
@@ -86,25 +89,26 @@ class Paper(object):
                     #print("Raising box height to %s" %(bot-maxH))
 
                 #   Letter won't be smaller than 3 pixels wide or tall
-                if end >= 3 and maxH-bot >= 3:
+                if end >= 3 and bot-maxH >= 3:
                     #   Convert our "box" into an image containing the potential letter
-                    print("Passing the parameters:" , start, bot, start+end, maxH)
+                    #print("Passing the parameters:" , start, bot, start+end, maxH)
                     letterI = toImage(start,bot,start+end,maxH,self)
 
                     #   Determine confidence and save the end of the box and corresponding
                     #   confidence if it exceeds the previous max. Add the letter the NN
                     #   thinks it is, in this case, to finalWord
-                    confAndLetter = getConfidence(letterI)
+                    confAndLetter = network.testLetter(letterI)
                     currConf = confAndLetter[0]
-                    letter = confAndLetter[1]
+                    letter = str(confAndLetter[1])
                     if currConf > maxConf:
                         maxConf = currConf
-                        maxEnd = end
+                        maxEnd = start+end
                         maxLetter = letter
                 #if maxH-bot < 3:
                     #print("Warning: skipping the procesing of a letter that is too short.")
 
             finalWord += maxLetter
+            #print("Found letter", maxLetter)
             start = maxEnd
 
         print("Read the word" , finalWord)
@@ -143,26 +147,32 @@ def getMargin(paper):
 #   first line.
 def getLineData(paper):
     h = 10  # distance from top corner in both dimensions
+    segLen = 2
+    numLines = 5
     
     #   Similar to technique in getMargin, but vertical. Find the top of the first line.
     start1 = h
     activ = 1000    
-    while (activ >= 765): # 765 = 255*3
+    while (activ >= 255*segLen):
         activ = 0
-        for i in range(3):
+        for i in range(segLen):
             activ += paper.pixels[start1+i][h]
-        start1 += 3  # jump size for start of segment
+        start1 += segLen  # jump size for start of segment
 
-    #   Find the bottom of the first line   
-    start2 = start1 + 5     # to avoid detecting the same line
-    activ = 1000
-    while (activ > 764):
-        activ = 0
-        for i in range(3):
-            activ += paper.pixels[start2+i][h]
-        start2 += 3  # jump size for start of segment
+    #   Find the bottom of the (numLines)th line   
+    start2 = start1
+    for line in range(numLines):
+        if (line == numLines-1):
+            print("line %s boundary found at %s pixels." %(line, start2))
+        start2 += 5     # to avoid detecting the same line
+        activ = 1000
+        while (activ >= 255*segLen):
+            activ = 0
+            for i in range(segLen):
+                activ += paper.pixels[start2+i][h]
+            start2 += segLen  # jump size for start of segment
 
-    lineH = start2 - start1
+    lineH = int((start2 - start1)/numLines)
     print("Found the line height! =%s pixels." %lineH)
     print("Found the top line! =%s pixels from the top." %start1)
     return (lineH, start1)
@@ -173,9 +183,9 @@ def getLineData(paper):
 #   where "start" = end. A helper function for partitionLine method
 def searchLine(paper,line,start,color):
     spacing = 3     # num pixels between line segments
-    numSegs = 7
+    numSegs = 6
     segWidth = 5
-    buffer = 4      # num pixels above line to start checking
+    buff = 5      # num pixels above line to start checking
 
     #   The trivial case where we've already reached the end of the line
     if start[1] == paper.pixels.shape[1]:
@@ -197,7 +207,7 @@ def searchLine(paper,line,start,color):
             #   Checks line segments
             for seg in range(numSegs):
                 for pix in range(segWidth):
-                    activ += paper.pixels[start[0]-buffer-seg*spacing][start[1]+pix]
+                    activ += paper.pixels[start[0]-buff-seg*spacing][start[1]+pix]
 
             start[1] += segWidth   # to proceed rightward until next color space                    
         start[1] += 2-segWidth   # to ensure letter is not truncated
@@ -216,7 +226,7 @@ def searchLine(paper,line,start,color):
             #   Checks line segments
             for seg in range(numSegs):
                 for pix in range(segWidth):
-                    activ += paper.pixels[start[0]-buffer-seg*spacing][start[1]+pix]
+                    activ += paper.pixels[start[0]-buff-seg*spacing][start[1]+pix]
                     
             start[1] += segWidth   # to proceed rightward until next color space
         start[1] -= (segWidth-2) # to ensure words are not truncated at the left
@@ -238,32 +248,39 @@ def toImage(w0,h0,w1,h1,paper):
         narrow = True
     else:
         narrow = False
-    wNew = int(min(wRatio, hRatio)*(w1-w0))
-    hNew = int(min(wRatio, hRatio)*(h0-h1))
+    wNew = int(round(min(wRatio, hRatio)*(w1-w0)))
+    hNew = int(round(min(wRatio, hRatio)*(h0-h1)))
 
     #   Expand image w/ scaling factor and bilinear interpolation
     im = paper.image.convert('L')
-    im = im.resize((wNew,hNew), Image.BILINEAR, (h0,w0,h1,w1)) # PIL uses (width, height)
+    im = im.resize((wNew,hNew), Image.BILINEAR, (w0,h1,w1,h0)) # PIL uses (width, height)
     startImage = np.asarray(im.getdata(),dtype=np.int16).reshape((im.size[1],im.size[0]))
+    #print("Converted image (before whitespace) has shape: ", startImage.shape)
 
     #   Fill in white space if image is too narrow or short
     endImage = np.full((netHeight,netWidth), 255) # All white
     if narrow:
         #   "superimpose" startImage onto the center (laterally) of endImage (or 1 pixel left of center)
-        buffer = int((netWidth - startImage.size[1]) / 2)
+        buff = int((netWidth - startImage.shape[1]) / 2)
+        #print("Too narrow: trying to add %s pixels on either side." %buff)
         for row in range(netHeight):
-            for col in range(buffer,netWidth-buffer):
-                endImage[row][col] = startImage[row][col]
+            for col in range(buff,netWidth-buff-1):
+                aosdiaufh = startImage[row][col-buff]
+                endImage[row][col] = startImage[row][col-buff]
     else:
         #   "superimpose" startImage onto the center (vertically) of endImage (or 1 pixel above center)
-        buffer = int((netHeight - startImage.size[0]) / 2)
-        for row in range(buffer,netHeight-buffer):
+        buff = int((netHeight - startImage.shape[0]) / 2)
+        #print("Too short: trying to add %s pixels above and below." %buff)
+        for row in range(buff,netHeight-buff-1):
             for col in range(netWidth):
-                endImage[row][col] = startImage[row][col]
+                endImage[row][col] = startImage[row-buff][col]
 
     if (endImage.shape[0] != netHeight or endImage.shape[1] != netWidth):
         print("Warning: toImage function did not return proper dimensions!")
-    return endImage
+    #else:
+        #print("Successfully produced image for input to NN!")
+        
+    return list(endImage.flatten())
 
 #   Open image and convert to a 2d numpy array of grayscale values. Then return
 def getImage(fileName):
