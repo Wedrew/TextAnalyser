@@ -1,14 +1,12 @@
 import numpy
 import math
 import os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import scipy.special
 import PIL
 import string
 from datetime import datetime
 from sys import exit
-import pyopencl as cl
-import pyopencl.array as pycl_array
 
 #Maps letters to numbers for input to neural network
 letterMappings = dict(zip(string.ascii_letters, range(1, 53)))
@@ -160,8 +158,10 @@ class NeuralNetwork:
         certainty = self.softmax(self.softmaxOutputs)
 
         #Print out predicted number
-        print("This is a {}".format(label))
-        print("Certainty: {}".format(certainty))
+        #print("This is a {}".format(label))
+        #print("Certainty: {}".format(certainty))
+
+        return (certainty, label)
 
     def load(self, rootDir):
         networkName = input("Saved network name: ")
