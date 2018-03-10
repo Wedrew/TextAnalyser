@@ -62,9 +62,9 @@ def loadMenu(rootDir):
 				except (EOFError, AssertionError) as e:
 					print("Try again")
 		elif menuSelection.lower() == "load":	
+			nn = NeuralNetwork()
+			nn.load(rootDir)
 			while True:
-				nn = NeuralNetwork()
-				nn.load(rootDir)
 				try:
 					printFiles(rootDir + "/data/testing/")
 					testingDataFile = input("Enter name of testing file: ")

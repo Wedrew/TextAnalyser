@@ -137,49 +137,57 @@ class NeuralNetwork:
         print("Certainty: {}".format(certainty))
 
     def load(self, rootDir):
-        printFolders(rootDir + "/savednetworks/")
-        networkName = input("Saved network name: ")
         #Assign loaded network
         while True:
-            #Check to see if folder for networkname exists
-            if os.path.exists(rootDir + "/savednetworks/" + networkName):
-                #Load files from folder
-                wih = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer1.npy")
-                who = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer2.npy")
-                self.weightInputHidden = wih
-                self.weightHiddenOutput = who
-                with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "r") as textFile:
-                    for line in textFile:
-                        fields = line.split(",")
-                        self.setNetwork(fields[0], fields[1], fields[2], fields[3])
-                print("Network successfully loaded")
-                break
-            elif networkName.lower() == "quit":
-                break
-            else:
-                print("Network name did not exist")
+            try:
+                printFolders(rootDir + "/savednetworks/")
                 networkName = input("Saved network name: ")
+                assert networkName != ""
+                #Check to see if folder for networkname exists
+                if os.path.exists(rootDir + "/savednetworks/" + networkName):
+                    #Load files from folder
+                    wih = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer1.npy")
+                    who = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer2.npy")
+                    self.weightInputHidden = wih
+                    self.weightHiddenOutput = who
+                    with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "r") as textFile:
+                        for line in textFile:
+                            fields = line.split(",")
+                            self.setNetwork(fields[0], fields[1], fields[2], fields[3])
+                    print("Network successfully loaded")
+                    break
+                elif networkName.lower() == "quit":
+                    break
+                else:
+                    print("Network name did not exist")
+                    networkName = input("Saved network name: ")
+            except (EOFError, AssertionError):
+                    print("Try again")
 
     def save(self, rootDir): #Save weights into folder using networkname
         #Create folders and files
         while True:
-            networkName = input("What would you like to save network as?: ")
-            #Check to see if folder for networkname already exists
-            if not os.path.exists(rootDir + "/savednetworks/" + networkName):
-                #Create folder to hold networks
-                os.makedirs(rootDir + "/savednetworks/" + networkName)
-                #Populate folder with files
-                numpy.save(rootDir + "/savednetworks/" + networkName + "/layer1.npy", self.weightInputHidden)
-                numpy.save(rootDir + "/savednetworks/" + networkName + "/layer2.npy", self.weightHiddenOutput)
-                #Create file to hold info about networks
-                with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "w") as textFile:
-                    textFile.write("{},{},{},{}".format(self.inputNodes, self.hiddenNodes, self.outputNodes, self.learningRate))
-                    textFile.close()
+            try:
+                networkName = input("What would you like to save network as?: ")
+                assert networkName != ""
+                #Check to see if folder for networkname already exists
+                if not os.path.exists(rootDir + "/savednetworks/" + networkName):
+                    #Create folder to hold networks
+                    os.makedirs(rootDir + "/savednetworks/" + networkName)
+                    #Populate folder with files
+                    numpy.save(rootDir + "/savednetworks/" + networkName + "/layer1.npy", self.weightInputHidden)
+                    numpy.save(rootDir + "/savednetworks/" + networkName + "/layer2.npy", self.weightHiddenOutput)
+                    #Create file to hold info about networks
+                    with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "w") as textFile:
+                        textFile.write("{},{},{},{}".format(self.inputNodes, self.hiddenNodes, self.outputNodes, self.learningRate))
+                        textFile.close()
+                        break
+                elif networkName.lower() == "quit":
                     break
-            elif networkName.lower() == "quit":
-                break
-            else:
-                print("Network name already exists")
+                else:
+                    print("Network name already exists")
+            except (EOFError, AssertionError):
+                print("Try again")
         print("Networks successfully saved")
 
     def softmax(self, x): #Compute softmax
