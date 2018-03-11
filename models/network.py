@@ -1,36 +1,16 @@
-import os
-<<<<<<< HEAD
-<<<<<<< HEAD
-#import matplotlib.pyplot as plt
-=======
-import time
-import matplotlib.pyplot
->>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
-import scipy.special
-=======
->>>>>>> 7ba3de136db486f578451b1c57b81cdebe7b170a
-import PIL
-import math
 import numpy
+import math
+import os
+import time
+#import matplotlib.pyplot
+import scipy.special
+import PIL
 import string
-<<<<<<< HEAD
 from datetime import datetime
 from sys import exit
-<<<<<<< HEAD
-
-#Maps letters to numbers for input to neural network
-letterMappings = dict(zip(string.ascii_letters, range(1, 53)))
-=======
-=======
-import scipy.special
-import matplotlib.pyplot
->>>>>>> 7ba3de136db486f578451b1c57b81cdebe7b170a
 import pyopencl as cl
 import pyopencl.array as pycl_array
-from datetime import datetime
-from sys import exit
 from src.helper import *
-<<<<<<< HEAD
 
 #Mapping for emnist training data, does not include some letters which may have similar
 #lower and upper case for better performance
@@ -84,11 +64,6 @@ emnistMapping = {
     45:'r',
     46:'t',
 }
->>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
-=======
-from data.mappings.mappings import *
-from src.graphicshelper import *
->>>>>>> 7ba3de136db486f578451b1c57b81cdebe7b170a
 
 #Neural network definition
 class NeuralNetwork:
@@ -206,7 +181,7 @@ class NeuralNetwork:
         #Query network
         outputs = self.query(inputs)
         #Index of the highest value corresponds to the label
-        label = numpy.argmax(outputs)
+        label = emnistMapping[numpy.argmax(outputs)]
         #Calculate certainty
         certainty = self.softmax(self.softmaxOutputs)
         #Print out predicted number
