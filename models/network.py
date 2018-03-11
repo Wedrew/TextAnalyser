@@ -66,12 +66,13 @@ class NeuralNetwork:
             for record in trainingDataList:
                 #Split the record by the ',' commas
                 allValues = record.split(',')
+                targetValue = allValues[0]
                 #Scale and shift the inputs
                 inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
                 #Create the target output values (all 0.01, except the desired label which is 0.99)
                 targets = numpy.zeros(self.outputNodes) + 0.01
                 #All_values[0] is the target label for this record
-                targets[int(allValues[0])] = 0.99
+                targets[int(targetValue)] = 0.99
                 #Train network
                 self.train(inputs, targets)
                 pass
@@ -83,7 +84,6 @@ class NeuralNetwork:
         print("Testing data...")
         correct = 0
         sizeDataList = 0
-        showImageNum = 0
         #Gets total digits to be entered
         for record in testDataList:
             sizeDataList += 1
@@ -106,9 +106,7 @@ class NeuralNetwork:
             print("Correct label:", correctLabel)
             print("Certainty: {}%".format(certainty*100))
             print("******************************")
-            
-            # #Uncomment to see text
-            # allValues = testDataList[showImageNum].split(',')
+
             # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
             # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
             # matplotlib.pyplot.show()
@@ -120,7 +118,6 @@ class NeuralNetwork:
             else:
                 #Network's answer does not match correct answer
                 pass
-            showImageNum += 1
         print("Performance: {}%".format((correct/sizeDataList)*100))
 
     def testLetter(self, image):
@@ -129,7 +126,7 @@ class NeuralNetwork:
         #Query network
         outputs = self.query(inputs)
         #Index of the highest value corresponds to the label
-        label = numpy.argmax(outputs)
+        label = emnistMapping[numpy.argmax(outputs)]
         #Calculate certainty
         certainty = self.softmax(self.softmaxOutputs)
         #Print out predicted number
