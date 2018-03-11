@@ -23,7 +23,6 @@ Icon
 *.csv
 
 #Stop test networks
-savednetworks/*.*/*.*
 
 # Directories potentially created on remote AFP share
 .AppleDB
@@ -40,5 +39,4 @@ cmake-build-default
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.npy
 

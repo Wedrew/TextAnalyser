@@ -175,8 +175,13 @@ def getLineData(paper):
             start2 += segLen  # jump size for start of segment
 
     lineH = int((start2 - start1)/numLines)
+<<<<<<< HEAD
     print("Found the line height! =%s pixels average over %s line(s)." %(lineH,numLines))
     print("Found the top line! =%s pixels from the top.\n" %start1)
+=======
+    print("Found the line height! =%s pixels." %lineH)
+    print("Found the top line! =%s pixels from the top." %start1)
+>>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
     return (lineH, start1)
 
 #   Given the paper and line, returns the y coord of the next region of color
@@ -187,8 +192,13 @@ def searchLine(paper,line,start,color):
     #   Parameters; tweak as needed
     spacing = 3     # num pixels between line segments
     numSegs = 6
+<<<<<<< HEAD
     segWidth = 7
     buff = 4      # num pixels above line to start checking
+=======
+    segWidth = 5
+    buff = 5      # num pixels above line to start checking
+>>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
 
     #   The trivial case where we've already reached the end of the line
     if start[1] == paper.pixels.shape[1]:
