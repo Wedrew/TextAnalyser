@@ -53,15 +53,15 @@ class Paper(object):
         for i in range(0,len(yCoords)-1,2):     # jump of 2 skips over whitespaces
             words.append([yCoords[i],yCoords[i+1]])
         print("Successfully read line %s; found %s words." %(line+1,len(words)))
-        print("The words array is ", words)
+        #print("The words array is ", words)
 
         return words
 
     #   Given a word, the paper, current line, and a NN to parse the word,
     #   returns the word as a single string
     def partitionWord(self, line, word, network):
-        bot = self.lineH * line + self.topLine
-        top = self.lineH * (line-1) + self.topLine
+        bot = self.lineH * (line+1) + self.topLine
+        top = self.lineH * line + self.topLine
         start = word[0]
         finalWord = ""
 
@@ -76,7 +76,7 @@ class Paper(object):
                 #   At end pixel laterally, check if letter needs more space by
                 #   moving downward until we hit a black pixel
                 pix = 255
-                currH = top+2   # makes sure top line doesn't mess with loop
+                currH = top+4   # makes sure top line doesn't mess with loop
                 while pix == 255 and currH <= bot-3:
                     #print(currH)
                     currH += 2
@@ -104,14 +104,12 @@ class Paper(object):
                         maxConf = currConf
                         maxEnd = start+end
                         maxLetter = letter
-                #if maxH-bot < 3:
-                    #print("Warning: skipping the procesing of a letter that is too short.")
 
             finalWord += maxLetter
             #print("Found letter", maxLetter)
             start = maxEnd
 
-        #print("Read the word" , finalWord)
+        print("Read the word" , finalWord)
         return finalWord
             
 # -------------------------------------------------------------------------------------
@@ -175,13 +173,10 @@ def getLineData(paper):
             start2 += segLen  # jump size for start of segment
 
     lineH = int((start2 - start1)/numLines)
-<<<<<<< HEAD
+
     print("Found the line height! =%s pixels average over %s line(s)." %(lineH,numLines))
     print("Found the top line! =%s pixels from the top.\n" %start1)
-=======
-    print("Found the line height! =%s pixels." %lineH)
-    print("Found the top line! =%s pixels from the top." %start1)
->>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
+
     return (lineH, start1)
 
 #   Given the paper and line, returns the y coord of the next region of color
@@ -192,13 +187,8 @@ def searchLine(paper,line,start,color):
     #   Parameters; tweak as needed
     spacing = 3     # num pixels between line segments
     numSegs = 6
-<<<<<<< HEAD
     segWidth = 7
     buff = 4      # num pixels above line to start checking
-=======
-    segWidth = 5
-    buff = 5      # num pixels above line to start checking
->>>>>>> d811ab1d147c58c7cd317560464a367fd61fab23
 
     #   The trivial case where we've already reached the end of the line
     if start[1] == paper.pixels.shape[1]:
@@ -264,9 +254,9 @@ def toImage(w0,h0,w1,h1,paper):
     wNew = int(round(min(wRatio, hRatio)*(w1-w0)))
     hNew = int(round(min(wRatio, hRatio)*(h0-h1)))
 
-    #   Expand image w/ scaling factor and bilinear interpolation
-    im = paper.image.convert('L')
-    im = im.resize((wNew,hNew), Image.BILINEAR, (w0,h1,w1,h0)) # PIL uses (width, height)
+    #   Expand image w/ scaling factor and bicubic interpolation
+    im = paper.image.convert('1')
+    im = im.resize((wNew,hNew), Image.BICUBIC, (w0,h1,w1,h0)) # PIL uses (width, height)
     startImage = np.asarray(im.getdata(),dtype=np.int16).reshape((im.size[1],im.size[0]))
     #print("Converted image (before whitespace) has shape: ", startImage.shape)
 
@@ -278,7 +268,6 @@ def toImage(w0,h0,w1,h1,paper):
         #print("Too narrow: trying to add %s pixels on either side." %buff)
         for row in range(netHeight):
             for col in range(buff,netWidth-buff-1):
-                aosdiaufh = startImage[row][col-buff]
                 endImage[row][col] = startImage[row][col-buff]
     else:
         #   "superimpose" startImage onto the center (vertically) of endImage (or 1 pixel above center)
@@ -290,8 +279,6 @@ def toImage(w0,h0,w1,h1,paper):
 
     if (endImage.shape[0] != netHeight or endImage.shape[1] != netWidth):
         print("Warning: toImage function did not return proper dimensions!")
-    #else:
-        #print("Successfully produced image for input to NN!")
         
     return list(endImage.flatten())
 
