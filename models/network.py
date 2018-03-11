@@ -2,7 +2,7 @@ import numpy
 import math
 import os
 import time
-#import matplotlib.pyplot
+import matplotlib.pyplot
 import scipy.special
 import PIL
 import string
@@ -181,6 +181,9 @@ class NeuralNetwork:
         label = emnistMapping[numpy.argmax(outputs)]
         #Calculate certainty
         certainty = self.softmax(self.softmaxOutputs)
+        imageArray= numpy.asfarray(image[:]).reshape((28,28))
+        matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+        matplotlib.pyplot.show()
         #Print out predicted number
         #print("This is a {}".format(label))
         #print("Certainty: {}".format(certainty))

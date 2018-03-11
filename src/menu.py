@@ -4,13 +4,14 @@ import sys
 import scipy.misc
 from src.graphicshelper import GetComputerInfo
 from src.helper import *
+from src.paper import *
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
 	info = GetComputerInfo()
 	while True:
 		#Ask whether to train or load network
-		menuSelection = input("Train, load or quit: ")
+		menuSelection = input("Train, load, convert or quit: ")
 		if menuSelection.lower() == "train":
 			#User input validation
 			while True:
@@ -81,6 +82,18 @@ def loadMenu(rootDir):
 						print("Try again")
 				except (EOFError, AssertionError) as e:
 					print("Try again")
+		elif menuSelection.lower() == "convert":
+			network = NeuralNetwork()
+			network.load(rootDir)
+
+			text = ""
+			paper = Paper()
+			for line in range(paper.numLines):
+			    print("Starting line %s!" %(line+1))
+			    words = paper.partitionLine(line)
+			    for word in words:
+			        strWord = paper.partitionWord(line,word, network)
+			        text = text + strWord + "\n"
 		elif menuSelection.lower() == "quit":
 			break
 		else:
