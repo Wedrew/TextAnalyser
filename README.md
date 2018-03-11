@@ -6,7 +6,7 @@ Utilizes a forward feed neural network to predict text for 28x28 images. Allows 
 
 # Compiling
 Linux:
-  * Python3.6, numpy, matplotlib, scipy
+  * Python3.6, numpy, matplotlib, scipy, PyOpenCl
   * Clone repository and cd to root directory
   * ```$ unzip data.zip```
   * ```$ python3.6 main.py```
