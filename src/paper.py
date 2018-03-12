@@ -67,12 +67,12 @@ class Paper(object):
 
         while (start < word[1]):
             maxConf = 0     # largest confidence of the NN for any end
-            maxEnd = -1    # end of letter that maximizes NN confidence
+            maxEnd = 3    # end of letter that maximizes NN confidence
             maxLetter = "#" # corresponding letter the NN sees
             maxH = bot-3   # smallest height containing entire current letter
 
-            #   Try all widths of current letter "box" possible up to 28
-            for end in range(max(word[1] - start + 1, 28)):
+            #   Try all widths of current letter "box" possible up to 30
+            for end in range(4,min(word[1] - start + 1, 30)):
                 #   At end pixel laterally, check if letter needs more space by
                 #   moving downward until we hit a black pixel
                 pix = 255
@@ -88,8 +88,8 @@ class Paper(object):
                     maxH = currH
                     #print("Raising box height to %s" %(bot-maxH))
 
-                #   Letter won't be smaller than 3 pixels wide or tall
-                if end >= 3 and bot-maxH >= 3:
+                #   Letter won't be smaller than 4 tall
+                if (bot-maxH >= 4 and start+4 < word[1]):
                     #   Convert our "box" into an image containing the potential letter
                     #print("Passing the parameters:" , start, bot, start+end, maxH)
                     letterI = toImage(start,bot,start+end,maxH,self)
@@ -102,12 +102,12 @@ class Paper(object):
                     letter = str(confAndLetter[1])
                     if currConf > maxConf:
                         maxConf = currConf
-                        maxEnd = start+end
+                        maxEnd = end
                         maxLetter = letter
 
             finalWord += maxLetter
-            #print("Found letter", maxLetter)
-            start = maxEnd
+            #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
+            start = start + maxEnd
 
         print("Read the word" , finalWord)
         return finalWord
@@ -255,8 +255,9 @@ def toImage(w0,h0,w1,h1,paper):
     hNew = int(round(min(wRatio, hRatio)*(h0-h1)))
 
     #   Expand image w/ scaling factor and bicubic interpolation
-    im = paper.image.convert('1')
+    im = paper.image
     im = im.resize((wNew,hNew), Image.BICUBIC, (w0,h1,w1,h0)) # PIL uses (width, height)
+    im = im.convert('1')
     startImage = np.asarray(im.getdata(),dtype=np.int16).reshape((im.size[1],im.size[0]))
     #print("Converted image (before whitespace) has shape: ", startImage.shape)
 
@@ -279,8 +280,12 @@ def toImage(w0,h0,w1,h1,paper):
 
     if (endImage.shape[0] != netHeight or endImage.shape[1] != netWidth):
         print("Warning: toImage function did not return proper dimensions!")
-        
-    return list(endImage.flatten())
+
+    newIm = endImage.flatten()
+    #   Invert since 0=white for training data
+    for i in range(len(newIm)):
+        newIm[i] = 255 - newIm[i]
+    return newIm.tolist()
 
 #   Open image and convert to a 2d numpy array of grayscale values. Then return
 def getImage(fileName):
