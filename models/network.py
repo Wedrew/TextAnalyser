@@ -6,10 +6,11 @@ import matplotlib.pyplot
 import scipy.special
 import PIL
 import string
-from datetime import datetime
-from sys import exit
 import pyopencl as cl
 import pyopencl.array as pycl_array
+from datetime import datetime
+from sys import exit
+from data.mappings.mappings import *
 from src.helper import *
 
 #Neural network definition
