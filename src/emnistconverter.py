@@ -19,7 +19,7 @@ with open(fileToConvert, "r") as trainingDataFile:
 		data = arrayData.tolist()
 		data.insert(0, correctLabel)
 
-		with open(fileToConvert + "_converted", "a") as convertedDataFile:
+		with open(fileToConvert + "_converted.csv", "a") as convertedDataFile:
 			y = 1
 			for x in data:
 				if y == len(data):

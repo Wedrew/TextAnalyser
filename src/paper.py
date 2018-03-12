@@ -1,5 +1,7 @@
 from PIL import Image
+import PIL.ImageOps
 import numpy as np
+import time
 
 #   This file contains most code sufficient to open a specified image file
 #   and write the contents into a .txt file. Relies on a neural network in
@@ -104,10 +106,14 @@ class Paper(object):
                         maxConf = currConf
                         maxEnd = end
                         maxLetter = letter
-
             finalWord += maxLetter
+<<<<<<< HEAD
             #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
             start = start + maxEnd
+=======
+            print("Found letter", maxLetter)
+            start = maxEnd
+>>>>>>> db1430b745d724093a0fa53273b56ca0193170d5
 
         print("Read the word" , finalWord)
         return finalWord
