@@ -107,13 +107,10 @@ class Paper(object):
                         maxEnd = end
                         maxLetter = letter
             finalWord += maxLetter
-<<<<<<< HEAD
             #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
             start = start + maxEnd
-=======
             print("Found letter", maxLetter)
             start = maxEnd
->>>>>>> db1430b745d724093a0fa53273b56ca0193170d5
 
         print("Read the word" , finalWord)
         return finalWord
