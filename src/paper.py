@@ -55,67 +55,68 @@ class Paper(object):
         for i in range(0,len(yCoords)-1,2):     # jump of 2 skips over whitespaces
             words.append([yCoords[i],yCoords[i+1]])
         print("Successfully read line %s; found %s words." %(line+1,len(words)))
-        #print("The words array is ", words)
+        print("The words array is ", words)
 
         return words
 
     #   Given a word, the paper, current line, and a NN to parse the word,
     #   returns the word as a single string
     def partitionWord(self, line, word, network):
+        #   Define borders of the entire word
         bot = self.lineH * (line+1) + self.topLine
         top = self.lineH * line + self.topLine
         start = word[0]
-        finalWord = ""
+        end = word[1]
+        w = end - start
+    
+        maxConf = 0
 
-        while (start < word[1]):
-            maxConf = 0     # largest confidence of the NN for any end
-            maxEnd = 3    # end of letter that maximizes NN confidence
-            maxLetter = "#" # corresponding letter the NN sees
-            maxH = bot-3   # smallest height containing entire current letter
+        #   Try different numbers of letters based on NN confidence.
+        #   Assume a letter length L is such that 4 < L < 28 pixels.
+        maxLet = int(w/5)
+        minLet = max(1,int(w/28))
+        for numLetts in range(minLet,maxLet+1):
+            conf = 0
+            currWord = ""
+            start = word[0]
+            for let in range(numLetts):
+                #   Have top of box around potential letter raise to
+                #   snugly contain letter: iterates downward until a black
+                #   pixel is found
+                maxH = bot-4   # box initially is only 4 pixels tall
+                for pix in range(0,int(w/numLetts)):
+                    currH = top + 4
+                    a = 255
+                    while a == 255 and currH <= bot-4:
+                        currH += 2
+                        a = self.pixels[currH][start+pix]
+                    currH -= 2
+                    #   If letter is taller than in the other pixel columns so far,
+                    #   raise the maxH to ensure it's contained in our final "box"
+                    if currH < maxH:
+                        maxH = currH
 
-            #   Try all widths of current letter "box" possible up to 30
-            for end in range(4,min(word[1] - start + 1, 30)):
-                #   At end pixel laterally, check if letter needs more space by
-                #   moving downward until we hit a black pixel
-                pix = 255
-                currH = top+4   # makes sure top line doesn't mess with loop
-                while pix == 255 and currH <= bot-3:
-                    #print(currH)
-                    currH += 2
-                    pix = self.pixels[currH][start+end]
-                currH -= 2
-                #   If letter is taller than in the other pixel columns so far,
-                #   raise the maxH to ensure it's contained in our final "box"
-                if currH < maxH:
-                    maxH = currH
-                    #print("Raising box height to %s" %(bot-maxH))
+                #   Generate an image from the letter and add the NN's confidence
+                #   about the letter to the cumulative sum "conf" for the entire
+                #   potential word segmentation choice
+                letterI = toImage(start,bot-2,start+int(w/numLetts),maxH,self)
+                #print("Letter between %s and %s is %s tall" %(start,start+int(w/numLetts),bot-maxH))
+                confAndLetter = network.testLetter(letterI)
+                conf += confAndLetter[0]
+                letter = str(confAndLetter[1])
+                currWord += letter
 
-                #   Letter won't be smaller than 4 tall
-                if (bot-maxH >= 4 and start+4 < word[1]):
-                    #   Convert our "box" into an image containing the potential letter
-                    #print("Passing the parameters:" , start, bot, start+end, maxH)
-                    letterI = toImage(start,bot,start+end,maxH,self)
-
-                    #   Determine confidence and save the end of the box and corresponding
-                    #   confidence if it exceeds the previous max. Add the letter the NN
-                    #   thinks it is, in this case, to finalWord
-                    confAndLetter = network.testLetter(letterI)
-                    currConf = confAndLetter[0]
-                    letter = str(confAndLetter[1])
-                    if currConf > maxConf:
-                        maxConf = currConf
-                        maxEnd = end
-                        maxLetter = letter
-            finalWord += maxLetter
-<<<<<<< HEAD
-            #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
-            start = start + maxEnd
-=======
-            print("Found letter", maxLetter)
-            start = maxEnd
->>>>>>> db1430b745d724093a0fa53273b56ca0193170d5
-
-        print("Read the word" , finalWord)
+                start += int(w/numLetts) # move to start of next letter
+                #print("numLetts is %s and start is %s" %(numLetts,start))
+                
+            #   If the current word has the best total confidence for the NN,
+            #   save it
+            #print("CurrWord:", currWord)
+            if conf / numLetts > maxConf:
+                maxConf = conf / numLetts
+                finalWord = currWord
+            
+        print("Found the word", finalWord)
         return finalWord
             
 # -------------------------------------------------------------------------------------
@@ -168,8 +169,8 @@ def getLineData(paper):
     #   Find the bottom of the (numLines)th line   
     start2 = start1
     for line in range(numLines):
-        if (line == numLines-1):
-            print("line %s boundary found at %s pixels." %(line, start2))
+        #if (line == numLines-1):
+            #print("line %s boundary found at %s pixels." %(line, start2))
         start2 += 5     # to avoid detecting the same line
         activ = 1000
         while (activ >= 255*segLen):
@@ -218,7 +219,8 @@ def searchLine(paper,line,start,color):
                 for pix in range(segWidth):
                     activ += paper.pixels[start[0]-buff-seg*spacing][start[1]+pix]
 
-            start[1] += segWidth   # to proceed rightward until next color space                    
+            start[1] += segWidth   # to proceed rightward until next color space
+
         start[1] += 2-segWidth   # to ensure letter is not truncated
 
     #   Find next word
@@ -238,7 +240,18 @@ def searchLine(paper,line,start,color):
                     activ += paper.pixels[start[0]-buff-seg*spacing][start[1]+pix]
                     
             start[1] += segWidth   # to proceed rightward until next color space
-        start[1] -= segWidth # to ensure words are not truncated at the left
+
+        #   For precise word boundaries: since a black pixel was found somewhere,
+        #   See if it was the left or right half of the segments that were checked.
+        start[1] -= segWidth    # go back to last segment
+        activ = 0
+        for seg in range(numSegs):
+            for pix in range(int(segWidth/2)):
+                activ += paper.pixels[start[0]-buff-seg*spacing][start[1]+pix]
+        #   If the left half is all white, it must be the right half; may add back
+        #   half of a segment length
+        if (activ == 255*numSegs*int(segWidth/2)):
+            start[1] += int(segWidth/2)
 
     return start[1]
 
@@ -248,6 +261,7 @@ def searchLine(paper,line,start,color):
 def toImage(w0,h0,w1,h1,paper):
     netWidth = 28
     netHeight = 28
+    tol = 200 # threshold brightness above which all pixels are considered white
 
     #   Want to maintain aspect ratio: determine a constant scaling
     #   factor so that one dimension is 28 and the other is <= 28.
@@ -263,8 +277,15 @@ def toImage(w0,h0,w1,h1,paper):
     #   Expand image w/ scaling factor and bicubic interpolation
     im = paper.image
     im = im.resize((wNew,hNew), Image.BICUBIC, (w0,h1,w1,h0)) # PIL uses (width, height)
-    im = im.convert('1')
     startImage = np.asarray(im.getdata(),dtype=np.int16).reshape((im.size[1],im.size[0]))
+    #   To black and white
+    for row in range(startImage.shape[0]):
+        for col in range(startImage.shape[1]):
+            if startImage[row][col] > tol:
+                startImage[row][col] = 255
+            else:
+                startImage[row][col] = 0
+                
     #print("Converted image (before whitespace) has shape: ", startImage.shape)
 
     #   Fill in white space if image is too narrow or short
@@ -298,10 +319,10 @@ def getImage(fileName):
     tol = 200   # threshold RGB value to convert pixels to white vs. black
     im = Image.open(fileName, 'r')
     im = im.convert('L',dither=None)    # to grayscale
-    pixels = np.asarray(im.getdata(),dtype=np.int32).reshape((im.size[1],im.size[0]))
+    pixels = np.asarray(im.getdata(),dtype=np.int16).reshape((im.size[1],im.size[0]))
     #   To black and white
-    for row in range(pixels[0].size):
-        for col in range(pixels[1].size):
+    for row in range(pixels.shape[0]):
+        for col in range(pixels.shape[1]):
             if pixels[row][col] > tol:
                 pixels[row][col] = 255
             else:

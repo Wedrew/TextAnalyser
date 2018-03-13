@@ -8,7 +8,7 @@ from src.paper import *
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
-	info = GetComputerInfo()
+	#info = GetComputerInfo()
 	while True:
 		#Ask whether to train or load network
 		menuSelection = input("Train, load, convert or quit: ")
