@@ -66,6 +66,7 @@ class Paper(object):
         bot = self.lineH * (line+1) + self.topLine
         top = self.lineH * line + self.topLine
         start = word[0]
+<<<<<<< HEAD
         end = word[1]
         w = end - start
     
@@ -117,6 +118,56 @@ class Paper(object):
                 finalWord = currWord
             
         print("Found the word", finalWord)
+=======
+        finalWord = ""
+
+        while (start < word[1]):
+            maxConf = 0     # largest confidence of the NN for any end
+            maxEnd = 3    # end of letter that maximizes NN confidence
+            maxLetter = "#" # corresponding letter the NN sees
+            maxH = bot-3   # smallest height containing entire current letter
+
+            #   Try all widths of current letter "box" possible up to 30
+            for end in range(4,min(word[1] - start + 1, 30)):
+                #   At end pixel laterally, check if letter needs more space by
+                #   moving downward until we hit a black pixel
+                pix = 255
+                currH = top+4   # makes sure top line doesn't mess with loop
+                while pix == 255 and currH <= bot-3:
+                    #print(currH)
+                    currH += 2
+                    pix = self.pixels[currH][start+end]
+                currH -= 2
+                #   If letter is taller than in the other pixel columns so far,
+                #   raise the maxH to ensure it's contained in our final "box"
+                if currH < maxH:
+                    maxH = currH
+                    #print("Raising box height to %s" %(bot-maxH))
+
+                #   Letter won't be smaller than 4 tall
+                if (bot-maxH >= 4 and start+4 < word[1]):
+                    #   Convert our "box" into an image containing the potential letter
+                    #print("Passing the parameters:" , start, bot, start+end, maxH)
+                    letterI = toImage(start,bot,start+end,maxH,self)
+
+                    #   Determine confidence and save the end of the box and corresponding
+                    #   confidence if it exceeds the previous max. Add the letter the NN
+                    #   thinks it is, in this case, to finalWord
+                    confAndLetter = network.testLetter(letterI)
+                    currConf = confAndLetter[0]
+                    letter = str(confAndLetter[1])
+                    if currConf > maxConf:
+                        maxConf = currConf
+                        maxEnd = end
+                        maxLetter = letter
+            finalWord += maxLetter
+            #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
+            start = start + maxEnd
+            print("Found letter", maxLetter)
+            start = maxEnd
+
+        print("Read the word" , finalWord)
+>>>>>>> cb5a9c46290ac6ba0edac6d31479f4bd8fd7e691
         return finalWord
             
 # -------------------------------------------------------------------------------------

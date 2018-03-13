@@ -3,24 +3,26 @@ import os
 import time
 #Emnist conversion script
 rootDir = os.getcwd()
-fileToConvert = rootDir + "/data/testing/emnist_balanced_test.csv"
+fileToConvert = rootDir + "/data/testing/emnist_test"
 
-with open(fileToConvert, "r") as trainingDataFile:
+with open(fileToConvert + ".csv", "r") as trainingDataFile:
 	for record in trainingDataFile:
 		data = record.split(",")
 		correctLabel = int(data[0])
 		del data[0]
-
 		data = [int(x) for x in data]
-		arrayData = np.asarray(data)
-		arrayData = arrayData.reshape((28,28))
-		arrayData = np.rot90(arrayData, 3)
-		arrayData = np.fliplr(arrayData)
-		arrayData = arrayData.flatten()
-		data = arrayData.tolist()
+
+		counter = 0
+		for x in data:
+			if x > 0:
+				data[counter] = 255
+				counter += 1
+			else:
+				counter += 1
+
 		data.insert(0, correctLabel)
 
-		with open(fileToConvert + "_converted.csv", "a") as convertedDataFile:
+		with open(fileToConvert + "_baw" + ".csv", "a") as convertedDataFile:
 			y = 1
 			for x in data:
 				if y == len(data):
