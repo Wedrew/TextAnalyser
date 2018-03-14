@@ -7,9 +7,11 @@ import scipy.special
 import PIL
 import string
 import pyopencl as cl
-import pyopencl.array as pycl_array
+import pyopencl.array as cl_array
+import pyopencl.tools as cl_tools
 from datetime import datetime
 from sys import exit
+from src.graphicshelper import opencl
 from data.mappings.mappings import *
 from src.helper import *
 
@@ -20,6 +22,7 @@ class NeuralNetwork:
         self.hiddenNodes = hiddenNodes
         self.outputNodes = outputNodes
         self.learningRate = learningRate
+
         #Initailize matrices for weights between the hidden layer and input layer as well as 
         #the output layer and the hidden later
         self.weightInputHidden = numpy.random.normal(0.0, pow(self.hiddenNodes, -0.5), (self.hiddenNodes, self.inputNodes))
@@ -30,17 +33,19 @@ class NeuralNetwork:
     def train(self, inputsList, targetsList):
         #Heavy lifting is done here
         #Will rewrite this using opencl
-        inputs = numpy.array(inputsList, ndmin=2).T
-        targets = numpy.array(targetsList, ndmin=2).T
-        hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
-        hiddenOutputs = self.activationFunction(hiddenInputs)
-        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs)
-        finalOutputs = self.activationFunction(finalInputs)
-        #Error (target-actual)
+        inputs = numpy.array(inputsList, ndmin=2, dtype=numpy.float32).T #Shape will be (784,1)
+        targets = numpy.array(targetsList, ndmin=2, dtype=numpy.float32).T #Shape will be (10,1)
+
+        hiddenInputs = numpy.dot(self.weightInputHidden, inputs) #Shape will be (400, 1)
+        hiddenOutputs = self.activationFunction(hiddenInputs) #Squish values
+
+        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs) #Shape will be (10,1)
+        finalOutputs = self.activationFunction(finalInputs) #Squish values
+        #Calculate error (target-actual)
         outputErrors = targets - finalOutputs
         hiddenErrors = numpy.dot(self.weightHiddenOutput.T, outputErrors)
-        self.weightHiddenOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), numpy.transpose(hiddenOutputs))
-        self.weightInputHidden += self.learningRate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), numpy.transpose(inputs))
+        self.weightHiddenOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), (hiddenOutputs).T)
+        self.weightInputHidden += self.learningRate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), (inputs).T)
 
     def query(self, inputsList):
         #Convert inputs list to 2d array
@@ -72,7 +77,7 @@ class NeuralNetwork:
                 #Create the target output values (all 0.01, except the desired label which is 0.99)
                 targets = numpy.zeros(self.outputNodes) + 0.01
                 #All_values[0] is the target label for this record
-                targets[int(targetValue)] = 0.99
+                targets[int(targetValue)] = 1
                 #Train network
                 self.train(inputs, targets)
                 pass
