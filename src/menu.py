@@ -9,7 +9,7 @@ from src.graphicshelper import opencl
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
-	x = opencl()
+	#info = GetComputerInfo()
 	while True:
 		#Ask whether to train or load network
 		menuSelection = input("Train, load, convert or quit: ")
