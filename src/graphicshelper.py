@@ -1,6 +1,6 @@
 import pyopencl as cl
 
-class GetComputerInfo:
+class opencl:
 	def __init__(self):
 		# Find out about your computer's OpenCL situatio
 		self.devicesList = []

@@ -66,59 +66,6 @@ class Paper(object):
         bot = self.lineH * (line+1) + self.topLine
         top = self.lineH * line + self.topLine
         start = word[0]
-<<<<<<< HEAD
-        end = word[1]
-        w = end - start
-    
-        maxConf = 0
-
-        #   Try different numbers of letters based on NN confidence.
-        #   Assume a letter length L is such that 4 < L < 28 pixels.
-        maxLet = int(w/5)
-        minLet = max(1,int(w/28))
-        for numLetts in range(minLet,maxLet+1):
-            conf = 0
-            currWord = ""
-            start = word[0]
-            for let in range(numLetts):
-                #   Have top of box around potential letter raise to
-                #   snugly contain letter: iterates downward until a black
-                #   pixel is found
-                maxH = bot-4   # box initially is only 4 pixels tall
-                for pix in range(0,int(w/numLetts)):
-                    currH = top + 4
-                    a = 255
-                    while a == 255 and currH <= bot-4:
-                        currH += 2
-                        a = self.pixels[currH][start+pix]
-                    currH -= 2
-                    #   If letter is taller than in the other pixel columns so far,
-                    #   raise the maxH to ensure it's contained in our final "box"
-                    if currH < maxH:
-                        maxH = currH
-
-                #   Generate an image from the letter and add the NN's confidence
-                #   about the letter to the cumulative sum "conf" for the entire
-                #   potential word segmentation choice
-                letterI = toImage(start,bot-2,start+int(w/numLetts),maxH,self)
-                #print("Letter between %s and %s is %s tall" %(start,start+int(w/numLetts),bot-maxH))
-                confAndLetter = network.testLetter(letterI)
-                conf += confAndLetter[0]
-                letter = str(confAndLetter[1])
-                currWord += letter
-
-                start += int(w/numLetts) # move to start of next letter
-                #print("numLetts is %s and start is %s" %(numLetts,start))
-                
-            #   If the current word has the best total confidence for the NN,
-            #   save it
-            #print("CurrWord:", currWord)
-            if conf / numLetts > maxConf:
-                maxConf = conf / numLetts
-                finalWord = currWord
-            
-        print("Found the word", finalWord)
-=======
         finalWord = ""
 
         while (start < word[1]):
@@ -167,7 +114,6 @@ class Paper(object):
             start = maxEnd
 
         print("Read the word" , finalWord)
->>>>>>> cb5a9c46290ac6ba0edac6d31479f4bd8fd7e691
         return finalWord
             
 # -------------------------------------------------------------------------------------
