@@ -136,6 +136,7 @@ class Paper(object):
         print("Best word overall had vector", bestVec)
         print("The word was", finalWord)
         print()
+
         return finalWord
 
 #   "Add 2 to" index vector, representing moving to the next permutation (choice of

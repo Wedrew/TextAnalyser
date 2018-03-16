@@ -2,9 +2,10 @@ import numpy
 import os
 import sys
 import scipy.misc
-from src.graphicshelper import GetComputerInfo
+from src.graphicshelper import opencl
 from src.helper import *
 from src.paper import *
+from src.graphicshelper import opencl
 from models.network import NeuralNetwork
 
 def loadMenu(rootDir):
