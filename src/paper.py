@@ -210,7 +210,7 @@ def getImageCache(paper, network, minLen, maxLen, start, end, bot, top):
         #   Loop through all starting positions for a given image width:
         for startPos in range(end - start - w + 1):
             boxTop = min(tops[startPos:startPos+w]) # min means highest pixel
-            letterI = toImage(start+startPos,bot-2,start+startPos+w,boxTop,paper)
+            letterI = toImage(startPos,bot-2,startPos+w,boxTop,paper)
             netOut = network.testLetter(letterI)
             currOutputs.append(netOut)
             numCached += len(currOutputs)
