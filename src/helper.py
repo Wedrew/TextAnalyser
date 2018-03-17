@@ -1,4 +1,5 @@
 import os
+import sys
 
 def createFolders(rootDir):
 	#Check if savednetworks folder exists (can't upload empty folders to git)
@@ -19,11 +20,44 @@ def printFiles(rootDir):
     for root, dirs, files in os.walk(rootDir):  
         for filename in files:
             if not filename.startswith('.'):
-                print(filename)
+                print("-" + filename)
     print("******************************")
 
 def printFolders(rootDir):
     print("******************************")
     print("Available folders: ")
     for folder in os.listdir(rootDir):
-        print(folder)
+        print(folder + "/")
+    print("******************************")
+
+
+def loadFile(rootDir):
+    pass
+
+def getInput(message, dtype=None):
+    while True:
+        if dtype == "i":
+            try:
+                userInput = int(input(message))
+                assert userInput > 0
+                break
+            except (ValueError, AssertionError): 
+                print("Try again")
+            except KeyboardInterrupt:
+                print("Shutdown requested...exiting.")
+                sys.exit(0)
+        elif dtype == "f":
+            try:
+                userInput = float(input(message))
+                assert userInput > 0.0
+                break
+            except (ValueError, AssertionError):
+                print("Try again")
+        else:
+            try:
+                userInput = input(message)
+                assert userInput != " "
+                break
+            except (ValueError, AssertionError):
+                print("Try again")
+    return userInput

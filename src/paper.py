@@ -2,6 +2,7 @@ from PIL import Image
 import PIL.ImageOps
 import numpy as np
 import time
+import math
 
 #   This file contains most code sufficient to open a specified image file
 #   and write the contents into a .txt file. Relies on a neural network in
@@ -66,61 +67,156 @@ class Paper(object):
         bot = self.lineH * (line+1) + self.topLine
         top = self.lineH * line + self.topLine
         start = word[0]
-        finalWord = ""
+        end = word[1]
+        w = end - start
 
-        while (start < word[1]):
-            maxConf = 0     # largest confidence of the NN for any end
-            maxEnd = 3    # end of letter that maximizes NN confidence
-            maxLetter = "#" # corresponding letter the NN sees
-            maxH = bot-3   # smallest height containing entire current letter
+        #   Define range of legitimate lengths for letters
+        minLen = 4
+        maxLen = 28
 
-            #   Try all widths of current letter "box" possible up to 30
-            for end in range(4,min(word[1] - start + 1, 30)):
-                #   At end pixel laterally, check if letter needs more space by
-                #   moving downward until we hit a black pixel
-                pix = 255
-                currH = top+4   # makes sure top line doesn't mess with loop
-                while pix == 255 and currH <= bot-3:
-                    #print(currH)
-                    currH += 2
-                    pix = self.pixels[currH][start+end]
-                currH -= 2
-                #   If letter is taller than in the other pixel columns so far,
-                #   raise the maxH to ensure it's contained in our final "box"
-                if currH < maxH:
-                    maxH = currH
-                    #print("Raising box height to %s" %(bot-maxH))
+        #   Get all letters and confidences associated with the boxes this method
+        #   will check
+        netOutputs = getImageCache(self,network,minLen,maxLen,start,end,bot,top)
 
-                #   Letter won't be smaller than 4 tall
-                if (bot-maxH >= 4 and start+4 < word[1]):
-                    #   Convert our "box" into an image containing the potential letter
-                    #print("Passing the parameters:" , start, bot, start+end, maxH)
-                    letterI = toImage(start,bot,start+end,maxH,self)
+        #   Define range of how many letters could be in word
+        maxLet = int(w/minLen)
+        minLet = max(1,math.ceil(w/maxLen))
+        print("There will be between %s and %s letters." %(minLet,maxLet))
 
-                    #   Determine confidence and save the end of the box and corresponding
-                    #   confidence if it exceeds the previous max. Add the letter the NN
-                    #   thinks it is, in this case, to finalWord
-                    confAndLetter = network.testLetter(letterI)
-                    currConf = confAndLetter[0]
+        #   For each possible number of letters, test all permutations, or choice
+        #   of partitioning of those letters
+        maxConf = 0
+        bestVec = []
+        for numLetts in range(minLet,maxLet+1):
+            print("At %s letters:" %numLetts)
+            #   Establish the "zero vector": a vector representing the first
+            #   possible permutation under the indexing system
+            zeroVec = []
+            start = word[0]
+            for i in range(numLetts):
+                #   Define lowest current letter sizes that guarantees existence
+                #   of at least one set of letters of legitimate length that
+                #   complete the word
+                minLi = max(minLen,w - (numLetts - i - 1)*maxLen)
+                zeroVec.append(minLi)
+                w -= minLi
+            w = end - start     # want to reuse w with its original value later
+
+            posVec = zeroVec    # the vector corresponding to current permutation
+            numPerms = 0
+            #print("w is", w)
+            #print("posVec = zeroVec =", posVec)
+            while posVec[0] != 0:
+                #   Generate word at current "position vector"
+                currWord = ""
+                conf = 0
+                pos = start
+                for i in range(numLetts):
+                    #   See getImageCache if indexing is confusing
+                    confAndLetter = netOutputs[posVec[i]-minLen][pos-start]
+                    conf += confAndLetter[0]
                     letter = str(confAndLetter[1])
-                    if currConf > maxConf:
-                        maxConf = currConf
-                        maxEnd = end
-                        maxLetter = letter
-            finalWord += maxLetter
-            #print("Found letter", maxLetter, "which was %s pixels wide" %maxEnd)
-            start = start + maxEnd
-            print("Found letter", maxLetter)
-            start = maxEnd
+                    currWord += letter
+                    pos += posVec[i]
+                
+                #   Save word and confidence that corresponded to it if it's the best
+                if conf / numLetts > maxConf:
+                    maxConf = conf / numLetts
+                    finalWord = currWord
+                    bestVec = list(posVec)    # to help debug which vector is most effective
+                
+                #   Iterate to next permutation
+                posVec = addTwo(posVec,numLetts,minLen,maxLen,w)
+                numPerms += 1
+                
+            print("Number of permutations so far:", numPerms)
+            print("Best word so far had vector", bestVec)
+            print("The word was", finalWord)
 
-        print("Read the word" , finalWord)
+        print("Best word overall had vector", bestVec)
+        print("The word was", finalWord)
+        print()
+
         return finalWord
+
+#   "Add 2 to" index vector, representing moving to the next permutation (choice of
+#   word partitioning) and return that vector, or return [0] if at the last permutation
+def addTwo(vec,numLetts,minLen,maxLen, w):
+    maxLi = []
+    wOrig = w
+    #   Fill maxLi, the list of maximal legitimate letter lengths from right to left
+    for i in range(numLetts):
+        maxLi.append(min(w - (numLetts - i - 1)*minLen,maxLen))
+        w -= vec[i]
+    w = wOrig
+
+    #   Add one to vector or return [0] if we can't (and we reached the last permutation)
+    keepGoing = True
+    i = numLetts-1
+    while keepGoing:
+        #   Increase last vector index if possible; if not try previous index
+        #   and continue this way if necessary before adding 1
+        if vec[i]+2 > maxLi[i]:
+            i -= 1
+            #   No more indices left to add 1 to; this means we were at the last
+            #   permutation and are done; returns [0] as a flag to signal completion
+            if i < 0:
+                return [0]
+        else:
+            vec[i] += 2
+            #   Have to reset the tail of the vector to be at the minimum
+            #   given the head's new value
+            if i < numLetts-1:
+                #   Get value for wi
+                for c in range(i+1):
+                    w -= vec[c]
+                #   Set the tail to the proper minimum
+                for c in range(i+1,numLetts):
+                    vec[c] = max(minLen,w - (numLetts - c - 1)*maxLen)
+                    w -= vec[c]
+                    
+            keepGoing = False
+
+    return vec
+
             
 # -------------------------------------------------------------------------------------
 #
 #   Helper functions ( not methods )
 #
 # -------------------------------------------------------------------------------------
+
+#   Sends the neural network all images it will need in partitionWord, and
+#   generates a (maxLen - minLen + 1) length list of lists, where each element
+#   is a tuple (letter, confidence) from network.testLetter. The elements
+#   of each array are ordered by image starting position from left to right.
+def getImageCache(paper, network, minLen, maxLen, start, end, bot, top):
+    netOutputs = []
+    numCached = 0
+    #   Different the minimum heights, at each width value, that contain text
+    #   with minimal whitespace leftover on top (to later shrink box onto letters)
+    tops = []
+    for pix in range(start,end):
+        currH = top + 4
+        #   Moves down until we hit a black pixel and records the ending height
+        a = 255
+        while a == 255 and currH <= bot-4:
+            currH += 2
+            a = paper.pixels[currH][pix]
+        tops.append(currH-2)
+
+    for w in range(minLen, maxLen+1):
+        currOutputs = []
+        #   Loop through all starting positions for a given image width:
+        for startPos in range(end - start - w + 1):
+            boxTop = min(tops[startPos:startPos+w]) # min means highest pixel
+            letterI = toImage(start+startPos,bot-2,start+startPos+w,boxTop,paper)
+            netOut = network.testLetter(letterI)
+            currOutputs.append(netOut)
+            numCached += len(currOutputs)
+        netOutputs.append(currOutputs)
+    print("Cached %s images and NN queries" %(numCached))
+    return netOutputs
 
 
 #   Given the pixels of the Paper, returns the number of pixels the margin on the paper

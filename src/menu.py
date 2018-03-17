@@ -1,6 +1,7 @@
 import numpy
 import os
 import sys
+import time
 import scipy.misc
 from src.graphicshelper import opencl
 from src.helper import *
@@ -12,25 +13,15 @@ def loadMenu(rootDir):
 	#info = GetComputerInfo()
 	while True:
 		#Ask whether to train or load network
-		menuSelection = input("Train, load, convert or quit: ")
+		menuSelection = input("Train, load, convert, draw or ctrl-c to quit: ")
 		if menuSelection.lower() == "train":
 			#User input validation
-			while True:
-				try:
-					#Declare neural network parameters
-					inputNodes = int(input("Input nodes (total pixels in image): "))
-					assert inputNodes > 0
-					hiddenNodes = int(input("Hidden nodes: "))
-					assert hiddenNodes > 0
-					outputNodes = int(input("Output nodes: "))
-					assert outputNodes > 0
-					learningRate = float(input("Learning rate: "))
-					assert learningRate > 0
-					epochs = int(input("Amount of epochs: "))
-					assert epochs > 0
-					break;
-				except (ValueError, AssertionError, EOFError) as e:	
-					print("Try again")
+			inputNodes = getInput("Input nodes(total pixels in image): ", dtype="i")
+			hiddenNodesLOne = getInput("Hidden nodes in layer one: ", dtype="i")
+			hiddenNodesLTwo = getInput("Hidden nodes in layer two: ", dtype="i")
+			outputNodes = getInput("Output nodes: ", dtype="i")
+			learningRate = getInput("Learning rate: ", dtype="f")
+			epochs = getInput("Amount of epochs: ", dtype="i")
 
 			while True:
 				try:
@@ -42,7 +33,7 @@ def loadMenu(rootDir):
 						trainingDataList = trainingDataFile.readlines()
 						trainingDataFile.close()
 						#Declare neural network
-						nn = NeuralNetwork(inputNodes, hiddenNodes, outputNodes, learningRate)
+						nn = NeuralNetwork(inputNodes, hiddenNodesLOne, hiddenNodesLTwo, outputNodes, learningRate)
 						#Train neural network
 						nn.epoch(epochs, trainingDataList)
 						print("Network trained")
@@ -65,24 +56,24 @@ def loadMenu(rootDir):
 					print("Try again")
 		elif menuSelection.lower() == "load":	
 			nn = NeuralNetwork()
-			nn.load(rootDir)
-			while True:
-				try:
-					printFiles(rootDir + "/data/testing/")
-					testingDataFile = input("Enter name of testing file: ")
-					assert testingDataFile != ""
-					if os.path.exists(rootDir + "/data/testing/" + testingDataFile):
-						testingDataFile = open(rootDir + "/data/testing/" + testingDataFile, 'r')
-						testingDataList = testingDataFile.readlines()
-						testingDataFile.close()
-						nn.testBatch(testingDataList)
-						break
-					elif (testingDataFile.lower() == "quit"):
-						break
-					else:
+			if (nn.load(rootDir) != False):
+				while True:
+					try:
+						printFiles(rootDir + "/data/testing/")
+						testingDataFile = input("Enter name of testing file: ")
+						assert testingDataFile != ""
+						if os.path.exists(rootDir + "/data/testing/" + testingDataFile):
+							testingDataFile = open(rootDir + "/data/testing/" + testingDataFile, 'r')
+							testingDataList = testingDataFile.readlines()
+							testingDataFile.close()
+							nn.testBatch(testingDataList)
+							break
+						elif (testingDataFile.lower() == "quit"):
+							break
+						else:
+							print("Try again")
+					except (EOFError, AssertionError) as e:
 						print("Try again")
-				except (EOFError, AssertionError) as e:
-					print("Try again")
 		elif menuSelection.lower() == "convert":
 			network = NeuralNetwork()
 			network.load(rootDir)
@@ -95,6 +86,16 @@ def loadMenu(rootDir):
 			    for word in words:
 			        strWord = paper.partitionWord(line,word, network)
 			        text = text + strWord + "\n"
+		elif menuSelection.lower() == "draw":
+			nn = NeuralNetwork()
+			nn.load(rootDir)
+
+			with open(rootDir + "/data/images/character.txt", "r") as imageFile:
+				for record in imageFile:
+					data = record.split(",")
+					data = [int(x) for x in data]
+					answer = nn.testLetter(data)
+
 		elif menuSelection.lower() == "quit":
 			break
 		else:

@@ -2,100 +2,60 @@ import numpy
 import math
 import os
 import time
-#import matplotlib.pyplot
+import matplotlib.pyplot
 import scipy.special
 import PIL
 import string
 import pyopencl as cl
 import pyopencl.array as cl_array
 import pyopencl.tools as cl_tools
+from sklearn.metrics import mean_squared_error
 from datetime import datetime
 from sys import exit
 from src.graphicshelper import opencl
 from data.mappings.mappings import *
 from src.helper import *
 
-emnistMapping = {
-    0:'0',
-    1:'1',
-    2:'2',
-    3:'3',
-    4:'4',
-    5:'5',
-    6:'6',
-    7:'7',
-    8:'8',
-    9:'9',
-    10:'A',
-    11:'B',
-    12:'C',
-    13:'D',
-    14:'E',
-    15:'F',
-    16:'G',
-    17:'H',
-    18:'I',
-    19:'J',
-    20:'K',
-    21:'L',
-    22:'M',
-    23:'N',
-    24:'O',
-    25:'P',
-    26:'Q',
-    27:'R',
-    28:'S',
-    29:'T',
-    30:'U',
-    31:'V',
-    32:'W',
-    33:'X',
-    34:'Y',
-    35:'Z',
-    36:'a',
-    37:'b',
-    38:'d',
-    39:'e',
-    40:'f',
-    41:'g',
-    42:'h',
-    43:'n',
-    44:'q',
-    45:'r',
-    46:'t',
-}
-
 #Neural network definition
 class NeuralNetwork:
-    def __init__(self, inputNodes=1, hiddenNodes=1, outputNodes=1, learningRate=0.0):
+    def __init__(self, inputNodes=1, hiddenNodesLOne=1, hiddenNodesLTwo=1, outputNodes=1, learningRate=0.0):
         self.inputNodes = inputNodes
-        self.hiddenNodes = hiddenNodes
+        self.hiddenNodesLOne = hiddenNodesLOne
+        self.hiddenNodesLTwo = hiddenNodesLTwo
         self.outputNodes = outputNodes
         self.learningRate = learningRate
 
-        #Initailize matrices for weights between the hidden layer and input layer as well as 
+        #Initailize matrices for weights between the hidden layers and input layer as well as 
         #the output layer and the hidden later
-        self.weightInputHidden = numpy.random.normal(0.0, pow(self.hiddenNodes, -0.5), (self.hiddenNodes, self.inputNodes))
-        self.weightHiddenOutput = numpy.random.normal(0.0, pow(self.outputNodes, -0.5), (self.outputNodes, self.hiddenNodes))
+        self.weightInputHidden = numpy.random.normal(0.0, pow(self.hiddenNodesLOne, -0.5), (self.hiddenNodesLOne, self.inputNodes))
+        self.weightHiddenLOneHiddenLTwo = numpy.random.normal(0.0, pow(self.hiddenNodesLTwo, -0.5), (self.hiddenNodesLTwo, self.hiddenNodesLOne))
+        self.weightHiddenLTwoOutput = numpy.random.normal(0.0, pow(self.outputNodes, -0.5), (self.outputNodes, self.hiddenNodesLTwo))
         #Activation function
         self.activationFunction = lambda x: scipy.special.expit(x)
 
     def train(self, inputsList, targetsList):
         #Heavy lifting is done here
-        #Will rewrite this using opencl
-        inputs = numpy.array(inputsList, ndmin=2, dtype=numpy.float32).T #Shape will be (784,1)
-        targets = numpy.array(targetsList, ndmin=2, dtype=numpy.float32).T #Shape will be (10,1)
+        #Will rewrite this using opencl/cudnn
+        inputs = numpy.array(inputsList, ndmin=2, dtype=numpy.float32).T 
+        targets = numpy.array(targetsList, ndmin=2, dtype=numpy.float32).T 
 
-        hiddenInputs = numpy.dot(self.weightInputHidden, inputs) #Shape will be (400, 1)
-        hiddenOutputs = self.activationFunction(hiddenInputs) #Squish values
+        hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
+        hiddenOutputs = self.activationFunction(hiddenInputs)
 
-        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs) #Shape will be (10,1)
-        finalOutputs = self.activationFunction(finalInputs) #Squish values
+        hiddenLOne = numpy.dot(self.weightHiddenLOneHiddenLTwo, hiddenOutputs)
+        hiddenLTwo = self.activationFunction(hiddenLOne)
+
+        finalInputs = numpy.dot(self.weightHiddenLTwoOutput, hiddenLTwo)
+        finalOutputs = self.activationFunction(finalInputs)
         #Calculate error (target-actual)
-        outputErrors = targets - finalOutputs
-        hiddenErrors = numpy.dot(self.weightHiddenOutput.T, outputErrors)
-        self.weightHiddenOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), (hiddenOutputs).T)
-        self.weightInputHidden += self.learningRate * numpy.dot((hiddenErrors * hiddenOutputs * (1.0-hiddenOutputs)), (inputs).T)
+        outputErrors = (target-actual)
+
+        hiddenLTwoErrors = numpy.dot(self.weightHiddenLTwoOutput.T, outputErrors)
+        hiddenLOneErrors = numpy.dot(self.weightHiddenLOneHiddenLTwo.T, hiddenLTwoErrors)
+
+        self.weightHiddenLTwoOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), (hiddenLTwo).T)
+        self.weightHiddenLOneHiddenLTwo += self.learningRate * numpy.dot((hiddenLTwoErrors * hiddenLTwo * (1.0-hiddenLTwo)), (hiddenOutputs).T)
+        self.weightInputHidden += self.learningRate * numpy.dot((hiddenLOneErrors * hiddenOutputs * (1.0-hiddenOutputs)), (inputs).T)
 
     def query(self, inputsList):
         #Convert inputs list to 2d array
@@ -103,8 +63,12 @@ class NeuralNetwork:
         #Calculate signals into hidden layer
         hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
         hiddenOutputs = self.activationFunction(hiddenInputs)
+
+        hiddenLOne = numpy.dot(self.weightHiddenLOneHiddenLTwo, hiddenOutputs)
+        hiddenLTwo = self.activationFunction(hiddenLOne)
+
         #Calculate signals into final output later
-        finalInputs = numpy.dot(self.weightHiddenOutput, hiddenOutputs)
+        finalInputs = numpy.dot(self.weightHiddenLTwoOutput, hiddenLTwo)
         #Used to determine networks confidence
         self.softmaxOutputs = finalInputs
         #Calculate the signals emerging from the final layer
@@ -147,13 +111,13 @@ class NeuralNetwork:
             #Split the record by the ',' commas
             allValues = record.split(',')
             #Correct answer is first value
-            correctLabel = emnistMapping[int(allValues[0])]
+            correctLabel = emnistBalancedMapping[int(allValues[0])]
             #Scale and shift the inputs
             inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
             #Query the network
             outputs = self.query(inputs)
             #The index of the highest value corresponds to the label
-            label = emnistMapping[numpy.argmax(outputs)]
+            label = emnistBalancedMapping[numpy.argmax(outputs)]
             #Produces the softmax "probability" of the network
             certainty = self.softmax(self.softmaxOutputs)
             print("******************************")
@@ -181,15 +145,15 @@ class NeuralNetwork:
         #Query network
         outputs = self.query(inputs)
         #Index of the highest value corresponds to the label
-        label = emnistMapping[numpy.argmax(outputs)]
+        label = emnistBalancedMapping[numpy.argmax(outputs)]
         #Calculate certainty
         certainty = self.softmax(self.softmaxOutputs)
-        # imageArray= numpy.asfarray(image[:]).reshape((28,28))
-        # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-        # matplotlib.pyplot.show()
         #Print out predicted number
-        #print("This is a {}".format(label))
-        #print("Certainty: {}".format(certainty))
+        print("This is a {}".format(label))
+        print("Certainty: {}%".format(certainty*100))
+        imageArray= numpy.asfarray(image[:]).reshape((28,28))
+        matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+        matplotlib.pyplot.show()
 
         return (certainty, label)
 
@@ -198,26 +162,28 @@ class NeuralNetwork:
         while True:
             try:
                 printFolders(rootDir + "/savednetworks/")
-                networkName = input("Saved network name: ")
+                networkName = input("Enter name of saved network: ")
                 assert networkName != ""
                 #Check to see if folder for networkname exists
                 if os.path.exists(rootDir + "/savednetworks/" + networkName):
                     #Load files from folder
-                    wih = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer1.npy")
-                    who = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer2.npy")
-                    self.weightInputHidden = wih
-                    self.weightHiddenOutput = who
+                    layer1 = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer1.npy")
+                    layer2 = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer2.npy")
+                    layer3 = numpy.load(rootDir + "/savednetworks/" + networkName + "/layer3.npy")
+                    self.weightInputHidden = layer1
+                    self.weightHiddenLOneHiddenLTwo = layer2
+                    self.weightHiddenLTwoOutput = layer3
+
                     with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "r") as textFile:
                         for line in textFile:
                             fields = line.split(",")
-                            self.setNetwork(fields[0], fields[1], fields[2], fields[3])
+                            self.setNetwork(fields[0], fields[1], fields[2], fields[3], fields[4])
                     print("Network successfully loaded")
                     break
                 elif networkName.lower() == "quit":
-                    break
+                    return False
                 else:
                     print("Network name did not exist")
-                    networkName = input("Saved network name: ")
             except (EOFError, AssertionError):
                     print("Try again")
 
@@ -233,14 +199,15 @@ class NeuralNetwork:
                     os.makedirs(rootDir + "/savednetworks/" + networkName)
                     #Populate folder with files
                     numpy.save(rootDir + "/savednetworks/" + networkName + "/layer1.npy", self.weightInputHidden)
-                    numpy.save(rootDir + "/savednetworks/" + networkName + "/layer2.npy", self.weightHiddenOutput)
+                    numpy.save(rootDir + "/savednetworks/" + networkName + "/layer2.npy", self.weightHiddenLOneHiddenLTwo)
+                    numpy.save(rootDir + "/savednetworks/" + networkName + "/layer3.npy", self.weightHiddenLTwoOutput)
                     #Create file to hold info about networks
                     with open(rootDir + "/savednetworks/" + networkName + "/info.txt", "w") as textFile:
-                        textFile.write("{},{},{},{}".format(self.inputNodes, self.hiddenNodes, self.outputNodes, self.learningRate))
+                        textFile.write("{},{},{},{},{}".format(self.inputNodes, self.hiddenNodesLOne, self.hiddenNodesLTwo, self.outputNodes, self.learningRate))
                         textFile.close()
                         break
                 elif networkName.lower() == "quit":
-                    break
+                    return
                 else:
                     print("Network name already exists")
             except (EOFError, AssertionError):
@@ -250,8 +217,9 @@ class NeuralNetwork:
     def softmax(self, x): #Compute softmax
         return numpy.max(numpy.exp(x) / float(sum(numpy.exp(x))))
 
-    def setNetwork(self, inputNodes, hiddenNodes, outputNodes, learningRate):
+    def setNetwork(self, inputNodes, hiddenNodesLOne, hiddenNodesLTwo, outputNodes, learningRate):
         self.inputNodes = inputNodes
-        self.hiddenNodes = hiddenNodes
+        self.hiddenNodesLOne = hiddenNodesLOne
+        self.hiddenNodesLTwo = hiddenNodesLTwo
         self.outputNodes = outputNodes
         self.learningRate = learningRate

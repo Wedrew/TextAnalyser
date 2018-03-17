@@ -1,6 +1,6 @@
 #Mapping for emnist training data, does not include some letters which may have similar
 #lower and upper case for better performance
-emnistMapping = {
+emnistBalancedMapping = {
     0:'0',
     1:'1',
     2:'2',
@@ -48,4 +48,32 @@ emnistMapping = {
     44:'q',
     45:'r',
     46:'t',
+}
+emnistLetterMapping = {
+    1:'A',
+    2:'B',
+    3:'C',
+    4:'D',
+    5:'E',
+    6:'F',
+    7:'G',
+    8:'H',
+    9:'I',
+    10:'J',
+    11:'K',
+    12:'L',
+    13:'M',
+    14:'N',
+    15:'O',
+    16:'P',
+    17:'Q',
+    18:'R',
+    19:'S',
+    20:'T',
+    21:'U',
+    22:'V',
+    23:'W',
+    24:'X',
+    25:'Y',
+    26:'Z',
 }
