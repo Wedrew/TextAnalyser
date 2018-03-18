@@ -1,31 +1,55 @@
 import numpy as np
+import time
 import os
 #Emnist conversion script that takes emnist data rotates it 90 degrees left, and flips the horizontal axis.
 #Not sure why they provided the training data this way
-rootDir = os.getcwd()
-fileToConvert = rootDir + "/data/testing/emnist_letters_test"
 
-with open(fileToConvert + ".csv", "r") as trainingDataFile:
-	for record in trainingDataFile:
-		data = record.split(",")
-		correctLabel = int(data[0])
-		del data[0]
+def emnistConvert(rootFile, saveFile)
+	fileData = []
+	with open(rootFile, "r") as trainingDataFile:
+		print("Converting...")
+		for record in trainingDataFile:
+			data = record.split(",")
+			#Zero indexes the correct label
+			correctLabel = int(data[0])
+			correctLabel -= 1
+			data[0] = str(correctLabel)
 
-		data = [int(x) for x in data]
-		arrayData = np.asarray(data)
-		arrayData = arrayData.reshape((28,28))
-		arrayData = np.rot90(arrayData, 3)
-		arrayData = np.fliplr(arrayData)
-		arrayData = arrayData.flatten()
-		data = arrayData.tolist()
-		data.insert(0, correctLabel)
+			# # Use this to flip array
+			# data = [int(x) for x in data]
+			# arrayData = np.asarray(data)
+			# arrayData = arrayData.reshape((28,28))
+			# arrayData = np.rot90(arrayData, 3)
+			# arrayData = np.fliplr(arrayData)
+			# arrayData = arrayData.flatten()
+			# data = arrayData.tolist()
+			# data.insert(0, correctLabel)
 
-		with open(fileToConvert + "_converted.csv", "a") as convertedDataFile:
-			y = 1
-			for x in data:
-				if y == len(data):
-					convertedDataFile.write(str(x))
+			fileData.append(data)
+
+	with open(saveFile, "w") as convertedDataFile:
+		for x in range(len(fileData)):
+			for y in range(len(fileData[x])):
+				if y+1 == len(fileData[x]):
+					convertedDataFile.write(str(fileData[x][y]))
 				else:
-					convertedDataFile.write(str(x)+",")
-					y += 1
-			convertedDataFile.write('\n')
+					convertedDataFile.write(str(fileData[x][y])+",")
+
+def getopts(argv):
+    opts = {}
+    while argv:
+        if argv[0][0] == "-":
+            opts[argv[0]] = argv[1]
+        argv = argv[1:]
+    return opts
+
+if __name__ == "__main__":
+	#Get working directory
+	rootDir = os.getcwd()
+	myargs = getopts(argv)
+	if "-f" in myargs and "-s" in myargs:
+		rootFile = myargs["-f"]
+		saveFile = myargs["-s"]
+		augmentData(rootFile, saveFile)
+	else:
+		print("Incorrect arguments")

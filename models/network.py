@@ -48,7 +48,7 @@ class NeuralNetwork:
         finalInputs = numpy.dot(self.weightHiddenLTwoOutput, hiddenLTwo)
         finalOutputs = self.activationFunction(finalInputs)
         #Calculate error (target-actual)
-        outputErrors = (target-actual)
+        outputErrors = (targets-finalOutputs)
 
         hiddenLTwoErrors = numpy.dot(self.weightHiddenLTwoOutput.T, outputErrors)
         hiddenLOneErrors = numpy.dot(self.weightHiddenLOneHiddenLTwo.T, hiddenLTwoErrors)
@@ -111,13 +111,13 @@ class NeuralNetwork:
             #Split the record by the ',' commas
             allValues = record.split(',')
             #Correct answer is first value
-            correctLabel = emnistBalancedMapping[int(allValues[0])]
+            correctLabel = emnistLetterMapping[int(allValues[0])]
             #Scale and shift the inputs
             inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
             #Query the network
             outputs = self.query(inputs)
             #The index of the highest value corresponds to the label
-            label = emnistBalancedMapping[numpy.argmax(outputs)]
+            label = emnistLetterMapping[numpy.argmax(outputs)]
             #Produces the softmax "probability" of the network
             certainty = self.softmax(self.softmaxOutputs)
             print("******************************")
@@ -126,9 +126,9 @@ class NeuralNetwork:
             print("Certainty: {}%".format(certainty*100))
             print("******************************")
 
-            # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
-            # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-            # matplotlib.pyplot.show()
+            imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
+            matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+            matplotlib.pyplot.show()
 
             #Test if nn was correct
             if (label == correctLabel):
@@ -145,15 +145,15 @@ class NeuralNetwork:
         #Query network
         outputs = self.query(inputs)
         #Index of the highest value corresponds to the label
-        label = emnistBalancedMapping[numpy.argmax(outputs)]
+        label = emnistLetterMapping[numpy.argmax(outputs)]
         #Calculate certainty
         certainty = self.softmax(self.softmaxOutputs)
         #Print out predicted number
         print("This is a {}".format(label))
         print("Certainty: {}%".format(certainty*100))
-        imageArray= numpy.asfarray(image[:]).reshape((28,28))
-        matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-        matplotlib.pyplot.show()
+        # imageArray= numpy.asfarray(image[:]).reshape((28,28))
+        # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+        # matplotlib.pyplot.show()
 
         return (certainty, label)
 

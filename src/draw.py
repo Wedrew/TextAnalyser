@@ -12,7 +12,7 @@ def convert():
     filename = "data/images/character.png"
     image2 = image
     image2 = PIL.ImageOps.invert(image2)
-    image2 = image2.resize((28, 28), resample=PIL.Image.LANCZOS)
+    image2 = image2.resize((28, 28), resample=PIL.Image.BICUBIC)
     pixels = list(image2.getdata())
     file = open(rootDir + "/data/images/character.txt","w+")
 
@@ -31,7 +31,6 @@ def convert():
     # image2 = image2.filter(ImageFilter.BLUR)
     # pixels = list(image2.getdata())
     # file = open(rootDir + "/data/images/character.txt","w+")
-
     print("File created")
     file.close()
 
