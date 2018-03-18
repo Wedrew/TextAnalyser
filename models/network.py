@@ -126,9 +126,9 @@ class NeuralNetwork:
             print("Certainty: {}%".format(certainty*100))
             print("******************************")
 
-            imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
-            matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-            matplotlib.pyplot.show()
+            # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
+            # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
+            # matplotlib.pyplot.show()
 
             #Test if nn was correct
             if (label == correctLabel):
