@@ -31,7 +31,7 @@ def removeLines(imageArray):
 	return data
 
 
-def getBorders(imageArray):
+def getBorders(originalImage):
 	TARGET_PIXEL_AREA = 2073600.0 #Roughly 1920x1080
 	mser = cv2.MSER_create()
 	#Convert image to grayscale
@@ -42,7 +42,7 @@ def getBorders(imageArray):
 		ratio = float(originalImage.shape[1]) / float(originalImage.shape[0])
 		originalImage = cv2.resize(originalImage, None, fx=ratio, fy=ratio, interpolation = cv2.INTER_AREA)
 
-	#
+	#Used to accentuate the papers black features
 	dilatedImage = cv2.dilate(originalImage, np.ones((10,10), np.uint8))
 	bgImage = cv2.medianBlur(dilatedImage, 21)
 	diffImage = 255 - cv2.absdiff(originalImage, bgImage)
@@ -50,7 +50,6 @@ def getBorders(imageArray):
 	cv2.normalize(diffImage, normImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1) 
 	_, thrImage = cv2.threshold(normImage, 230, 0, cv2.THRESH_TRUNC)
 	cv2.normalize(thrImage, thrImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
-
 	cv2.imshow("asdf", thrImage)
 	cv2.waitKey(0)
 
@@ -66,19 +65,9 @@ def getBorders(imageArray):
 	totalLines = cv2.add((255-morphed2), (255-morphed))
 	#Remove lines from original image
 	cleanedImage = cv2.add(totalLines, thrImage)
-
 	cv2.imshow("asdf", cleanedImage)
 	cv2.waitKey(0)
 
-	blurredImage = cv2.erode(cleanedImage, np.ones((1, 10)))
-	blurredImage = cv2.dilate(blurredImage, np.ones((1, 22)))
-
-	regions = mser.detectRegions(blurredImage)
-	hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions[0]]
-	cv2.polylines(blurredImage, hulls, 1, (0,255,0)) 
-
-	cv2.imshow("asdf", blurredImage)
-	cv2.waitKey(0)
 
 	#At this point image should have no paper lines
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))

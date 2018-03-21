@@ -6,6 +6,7 @@ import scipy.misc
 from src.graphicshelper import opencl
 from src.helper import *
 from src.paper import *
+from dataprocessing.draw import *
 from src.graphicshelper import opencl
 from models.network import NeuralNetwork
 
@@ -88,13 +89,8 @@ def loadMenu(rootDir):
 			        text = text + strWord + "\n"
 		elif menuSelection.lower() == "draw":
 			nn = NeuralNetwork()
-			nn.load(rootDir)
-
-			with open(rootDir + "/data/images/character.txt", "r") as imageFile:
-				for record in imageFile:
-					data = record.split(",")
-					data = [int(x) for x in data]
-					answer = nn.testLetter(data)
+			if nn.load(rootDir):
+				createDrawWindow(nn)
 
 		elif menuSelection.lower() == "quit":
 			break

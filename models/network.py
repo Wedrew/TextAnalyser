@@ -177,7 +177,7 @@ class NeuralNetwork:
                             fields = line.split(",")
                             self.setNetwork(fields[0], fields[1], fields[2], fields[3], fields[4])
                     print("Network successfully loaded")
-                    break
+                    return True
                 elif networkName.lower() == "quit":
                     return False
                 else:
