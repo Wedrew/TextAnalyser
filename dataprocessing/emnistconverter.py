@@ -1,13 +1,12 @@
 import numpy as np
+from sys import argv
 import time
 import os
 #Emnist conversion script that takes emnist data rotates it 90 degrees left, and flips the horizontal axis.
 #Not sure why they provided the training data this way
-
 def emnistConvert(rootFile, saveFile)
 	fileData = []
 	with open(rootFile, "r") as trainingDataFile:
-		print("Converting...")
 		for record in trainingDataFile:
 			data = record.split(",")
 			#Zero indexes the correct label
@@ -50,6 +49,6 @@ if __name__ == "__main__":
 	if "-f" in myargs and "-s" in myargs:
 		rootFile = myargs["-f"]
 		saveFile = myargs["-s"]
-		augmentData(rootFile, saveFile)
+		emnistConvert(rootFile, saveFile)
 	else:
 		print("Incorrect arguments")

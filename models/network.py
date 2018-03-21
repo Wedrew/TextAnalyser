@@ -13,6 +13,7 @@ from sklearn.metrics import mean_squared_error
 from datetime import datetime
 from sys import exit
 from src.graphicshelper import opencl
+from skimage.feature import hog
 from data.mappings.mappings import *
 from src.helper import *
 
@@ -24,7 +25,6 @@ class NeuralNetwork:
         self.hiddenNodesLTwo = hiddenNodesLTwo
         self.outputNodes = outputNodes
         self.learningRate = learningRate
-
         #Initailize matrices for weights between the hidden layers and input layer as well as 
         #the output layer and the hidden later
         self.weightInputHidden = numpy.random.normal(0.0, pow(self.hiddenNodesLOne, -0.5), (self.hiddenNodesLOne, self.inputNodes))
@@ -38,21 +38,21 @@ class NeuralNetwork:
         #Will rewrite this using opencl/cudnn
         inputs = numpy.array(inputsList, ndmin=2, dtype=numpy.float32).T 
         targets = numpy.array(targetsList, ndmin=2, dtype=numpy.float32).T 
-
+        #First hidden layer
         hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
         hiddenOutputs = self.activationFunction(hiddenInputs)
-
+        #Second hidden layer
         hiddenLOne = numpy.dot(self.weightHiddenLOneHiddenLTwo, hiddenOutputs)
         hiddenLTwo = self.activationFunction(hiddenLOne)
-
+        #Final output layer
         finalInputs = numpy.dot(self.weightHiddenLTwoOutput, hiddenLTwo)
         finalOutputs = self.activationFunction(finalInputs)
         #Calculate error (target-actual)
         outputErrors = (targets-finalOutputs)
-
+        #Errors for two hidden layers
         hiddenLTwoErrors = numpy.dot(self.weightHiddenLTwoOutput.T, outputErrors)
         hiddenLOneErrors = numpy.dot(self.weightHiddenLOneHiddenLTwo.T, hiddenLTwoErrors)
-
+        #Update weights
         self.weightHiddenLTwoOutput += self.learningRate * numpy.dot((outputErrors * finalOutputs * (1.0-finalOutputs)), (hiddenLTwo).T)
         self.weightHiddenLOneHiddenLTwo += self.learningRate * numpy.dot((hiddenLTwoErrors * hiddenLTwo * (1.0-hiddenLTwo)), (hiddenOutputs).T)
         self.weightInputHidden += self.learningRate * numpy.dot((hiddenLOneErrors * hiddenOutputs * (1.0-hiddenOutputs)), (inputs).T)
@@ -63,10 +63,9 @@ class NeuralNetwork:
         #Calculate signals into hidden layer
         hiddenInputs = numpy.dot(self.weightInputHidden, inputs)
         hiddenOutputs = self.activationFunction(hiddenInputs)
-
+        #Calculate signals into second hidden layer
         hiddenLOne = numpy.dot(self.weightHiddenLOneHiddenLTwo, hiddenOutputs)
         hiddenLTwo = self.activationFunction(hiddenLOne)
-
         #Calculate signals into final output later
         finalInputs = numpy.dot(self.weightHiddenLTwoOutput, hiddenLTwo)
         #Used to determine networks confidence
@@ -85,13 +84,13 @@ class NeuralNetwork:
             for record in trainingDataList:
                 #Split the record by the ',' commas
                 allValues = record.split(',')
-                targetValue = allValues[0]
+                targetValue = (allValues[0])
                 #Scale and shift the inputs
                 inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
                 #Create the target output values (all 0.01, except the desired label which is 0.99)
                 targets = numpy.zeros(self.outputNodes) + 0.01
                 #All_values[0] is the target label for this record
-                targets[int(targetValue)] = 1
+                targets[int(float(targetValue))] = 0.99
                 #Train network
                 self.train(inputs, targets)
                 pass
@@ -111,7 +110,7 @@ class NeuralNetwork:
             #Split the record by the ',' commas
             allValues = record.split(',')
             #Correct answer is first value
-            correctLabel = emnistLetterMapping[int(allValues[0])]
+            correctLabel = emnistLetterMapping[int(float(allValues[0]))]
             #Scale and shift the inputs
             inputs = (numpy.asfarray(allValues[1:]) / 255.0 * 0.99) + 0.01
             #Query the network
@@ -154,7 +153,6 @@ class NeuralNetwork:
         # imageArray= numpy.asfarray(image[:]).reshape((28,28))
         # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
         # matplotlib.pyplot.show()
-
         return (certainty, label)
 
     def load(self, rootDir):
