@@ -25,6 +25,13 @@ def createDrawWindow(neuralNetwork):
 	    elif event == cv2.EVENT_LBUTTONUP:
 	        drawing = False
 	        cv2.circle(img,(x,y),15,(0,0,0),-1)
+	        #Call neural network for letter
+	        grayImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	        grayImage = cv2.resize(grayImage, (28,28), interpolation = cv2.INTER_AREA)
+	        grayImage = 255-grayImage
+	        grayImage = centerImage(grayImage, 5)
+	        grayImage = grayImage.flatten()
+	        neuralNetwork.testLetter(grayImage)
 
 	img = np.zeros((280,280,3), np.uint8)
 	img[img < 255] = 255
@@ -34,14 +41,6 @@ def createDrawWindow(neuralNetwork):
 	while(1):
 	    cv2.imshow('Letter',img)
 	    key = cv2.waitKey(1) & 0xFF
-	    if key == ord('l'):
-	        #Call neural network for letter
-	        grayImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	        grayImage = cv2.resize(grayImage, (28,28), interpolation = cv2.INTER_AREA)
-	        grayImage = 255-grayImage
-	        grayImage = centerImage(grayImage, 5)
-	        grayImage = grayImage.flatten()
-	        neuralNetwork.testLetter(grayImage)
 	    if key == ord('c'):
 	    	img = np.zeros((280,280,3), np.uint8)
 	    	img[img < 255] = 255

@@ -213,7 +213,7 @@ class NeuralNetwork:
         print("Networks successfully saved")
 
     def softmax(self, x): #Compute softmax
-        return numpy.max(numpy.exp(x) / float(sum(numpy.exp(x))))
+        return numpy.max(numpy.exp(1*x) / float(sum(numpy.exp(1*x))))
 
     def setNetwork(self, inputNodes, hiddenNodesLOne, hiddenNodesLTwo, outputNodes, learningRate):
         self.inputNodes = inputNodes
