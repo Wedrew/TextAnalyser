@@ -125,7 +125,7 @@ class NeuralNetwork:
             print("Certainty: {}%".format(certainty*100))
             print("******************************")
 
-            # imageArray= numpy.asfarray(allValues[1:]).reshape((28,28))
+            # imageArray = numpy.asfarray(allValues[1:]).reshape((28,28))
             # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
             # matplotlib.pyplot.show()
 
@@ -153,7 +153,7 @@ class NeuralNetwork:
         # imageArray= numpy.asfarray(image[:]).reshape((28,28))
         # matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
         # matplotlib.pyplot.show()
-        return (certainty, label)
+        #return (certainty, label)
 
     def load(self, rootDir):
         #Assign loaded network

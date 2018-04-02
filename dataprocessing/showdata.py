@@ -1,6 +1,14 @@
 import os
 import numpy as np
 import matplotlib.pyplot
+import cv2
+from skimage.morphology import medial_axis, skeletonize, skeletonize_3d
+from skimage.morphology import skeletonize
+from skimage import data
+import matplotlib.pyplot as plt
+from skimage.util import invert
+import numpy
+from skimage import data
 #Mapping for emnist training data, does not include some letters which may have similar
 #lower and upper case for better performance
 emnistBalancedMapping = {
@@ -82,16 +90,20 @@ emnistLetterMapping = {
 }
 
 fileName = str(input("File name: "))
-filePath = "/Users/andrewpagan/Documents/School/TextAnalyser/data/training/" + fileName
+filePath = "/Users/andrewpagan/Documents/School/TextAnalyser/data/testing/" + fileName
 
 with open(filePath, "r") as file:
-	for record in file:
-		data = record.split(",")
-		correctLetter = emnistLetterMapping[int(data[0])]
-		print("Correct letter: {}".format(correctLetter))
-		del data[0]
-		data = np.asarray(data, np.uint8)
+    x=1
+    for record in file:
+        data = record.split(",")
+        correctLetter = emnistLetterMapping[int(data[0])]
+        print("Correct letter: {}".format(correctLetter))
+        del data[0]
+        data = np.asarray(data, np.uint8)
 
-		imageArray= np.asfarray(data).reshape((28,28))
-		matplotlib.pyplot.imshow(imageArray, cmap='Greys', interpolation='None')
-		matplotlib.pyplot.show()
+
+        imageArray= np.asarray(data).reshape((28,28))
+        # imageArray = 255-imageArray
+        # imageArray = cv2.resize(imageArray, None, fx=5, fy=5, interpolation = cv2.INTER_CUBIC)
+        cv2.imshow("asdf", imageArray)
+        cv2.waitKey(0)

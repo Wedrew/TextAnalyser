@@ -8,29 +8,19 @@ import time
 def centerImage(imageArray, threshold):
     THRESHOLD = threshold
     borderType = cv2.BORDER_CONSTANT
-    HEIGHT, WIDTH = imageArray.shape
     #Get bordered area where values are 0
     points = np.argwhere(imageArray>=THRESHOLD)
     points = np.fliplr(points)
     x, y, w, h = cv2.boundingRect(points)
-    crop = imageArray[y:y+h, x:x+w]
-    height, width = crop.shape
-    #Find necessary ratios
-    top = int((HEIGHT-height)/2)
-    left = int((WIDTH-width)/2)
-    bottom = top
-    right = left
-    #Add border
-    finalImage= cv2.copyMakeBorder(crop, top, bottom, left, right, borderType, None, 0)
+    finalImage = imageArray[y:y+h, x:x+w]
     height, width = finalImage.shape
-    # Adjusts for rounding errors when cropped image had an odd side length
-    while height < HEIGHT:
-        finalImage= cv2.copyMakeBorder(finalImage, 1, 0, 0, 0, borderType, None, 0)
-        height = finalImage.shape[0]
-
-    while width < WIDTH:
-        finalImage= cv2.copyMakeBorder(finalImage, 0, 0, 1, 0, borderType, None, 0)
-        width = finalImage.shape[1]
+    # # Adjusts for rounding errors when cropped image had an odd side length
+    # while height < width:
+    #     finalImage= cv2.copyMakeBorder(finalImage, 1, 1, 0, 0, borderType, None, 0)
+    #     height = finalImage.shape[0]
+    # while width < height:
+    #     finalImage= cv2.copyMakeBorder(finalImage, 0, 0, 1, 1, borderType, None, 0)
+    #     width = finalImage.shape[1]
     #We have a centered image using WIDTHxHEIGHT
     return finalImage
 
@@ -41,8 +31,8 @@ def centerFileData(rootFile, saveFile):
     THRESHOLD = int(input("THRESHOLD: "))
     centeredData = []
     borderType = cv2.BORDER_CONSTANT
-    with open(rootFile, "r") as trainingDataFile:
-        for record in trainingDataFile:
+    with open(rootFile, "r") as dataFile:
+        for record in dataFile:
             #Split file
             allValues = record.split(",")
             correctLabel = allValues[0]

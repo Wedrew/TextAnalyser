@@ -30,43 +30,73 @@ def removeLines(imageArray):
 
 	return data
 
+def normalizePaper(originalImage):
+	dilatedImage = cv2.dilate(originalImage, np.ones((10,10), np.uint8))
+	bgImage = cv2.medianBlur(dilatedImage, 21)
+	diffImage = 255 - cv2.absdiff(originalImage, bgImage)
+	normImage = diffImage.copy()
+	cv2.normalize(diffImage, normImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1) 
+	_, thrImage = cv2.threshold(normImage, 250, 0, cv2.THRESH_TRUNC)
+	cv2.normalize(thrImage, thrImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+	return thrImage
+
+def normalizeLines(originalImage):
+	dilatedImage = cv2.dilate(originalImage, np.ones((10,10), np.uint8))
+	bgImage = cv2.medianBlur(dilatedImage, 21)
+	diffImage = 255 - cv2.absdiff(originalImage, bgImage)
+	normImage = diffImage.copy()
+	cv2.normalize(diffImage, normImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1) 
+	return normImage
+
 
 def getBorders(originalImage):
 	TARGET_PIXEL_AREA = 2073600.0 #Roughly 1920x1080
 	mser = cv2.MSER_create()
 	#Convert image to grayscale
 	originalImage = cv2.cvtColor(imageArray, cv2.COLOR_BGR2GRAY)
-	#Clean up image for processing
 	#Scale image if larger than raget pixel area
 	while originalImage.shape[0] * originalImage.shape[1] > TARGET_PIXEL_AREA:
 		ratio = float(originalImage.shape[1]) / float(originalImage.shape[0])
 		originalImage = cv2.resize(originalImage, None, fx=ratio, fy=ratio, interpolation = cv2.INTER_AREA)
 
-	#Used to accentuate the papers black features
-	dilatedImage = cv2.dilate(originalImage, np.ones((10,10), np.uint8))
-	bgImage = cv2.medianBlur(dilatedImage, 21)
-	diffImage = 255 - cv2.absdiff(originalImage, bgImage)
-	normImage = diffImage.copy()
-	cv2.normalize(diffImage, normImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1) 
-	_, thrImage = cv2.threshold(normImage, 230, 0, cv2.THRESH_TRUNC)
-	cv2.normalize(thrImage, thrImage, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
-	cv2.imshow("asdf", thrImage)
+	#Get vertical lines for segementation
+	kernel = np.ones((1,40), np.uint8)
+	morphed = cv2.morphologyEx(originalImage, cv2.MORPH_CLOSE, kernel)
+	lsd = cv2.createLineSegmentDetector(0)
+	lines = lsd.detect(morphed)[1]
+	vertLines = lsd.drawSegments(morphed,lines)
+	cv2.imshow("Vertical Lines", vertLines)
 	cv2.waitKey(0)
 
-	#Coordinates to hold bonder regions
-	borderCoordinates = []
+	#Inhance vertical lines
+	nLinesImage = normalizeLines(vertLines)
+	nLinesImage = cv2.cvtColor(nLinesImage, cv2.COLOR_BGR2GRAY)
+	_, nLines = cv2.threshold(nLinesImage, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+	cv2.imshow("Enhanced Vertical Lines", nLines)
+	cv2.waitKey(0)
+
+	#Get cleaned image of paper
+	nImage = normalizePaper(originalImage)
+	cv2.imshow("Normalize Paper", nImage)
+	cv2.waitKey(0)
+
 	#Create long line kernel, and do morph-close-op
 	kernel = np.ones((1,40), np.uint8)
-	morphed = cv2.morphologyEx(thrImage, cv2.MORPH_CLOSE, kernel)
+	morphed = cv2.morphologyEx(nImage, cv2.MORPH_CLOSE, kernel)
 	#Create long line kernel, and do morph-close-op
 	kernel2 = np.ones((40,1), np.uint8)
-	morphed2 = cv2.morphologyEx(thrImage, cv2.MORPH_CLOSE, kernel2)
+	morphed2 = cv2.morphologyEx(nImage, cv2.MORPH_CLOSE, kernel2)
 	#Combined lines that need to be removed (assume paper is white)
 	totalLines = cv2.add((255-morphed2), (255-morphed))
 	#Remove lines from original image
-	cleanedImage = cv2.add(totalLines, thrImage)
-	cv2.imshow("asdf", cleanedImage)
+	cleanedImage = cv2.add(totalLines, nImage)
+	cv2.imshow("No Lines Paper", cleanedImage)
 	cv2.waitKey(0)
+
+
+
+
+
 
 
 	#At this point image should have no paper lines

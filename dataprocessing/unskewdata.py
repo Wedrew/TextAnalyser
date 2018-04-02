@@ -6,27 +6,27 @@ from PIL import Image
 import os
 import time
 
-SZ = 28 # size of each digit is SZ x SZ
 unskewedData = []
 
-def unskewImage(image):
+def unskewImage(image, size):
     m = cv2.moments(image)
     if abs(m['mu02']) < 1e-2:
         return image.copy()
     skew = m['mu11']/m['mu02']
-    M = np.float32([[1, skew, -0.5*SZ*skew], [0, 1, 0]])
-    image = cv2.warpAffine(image, M, (SZ, SZ), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
+    M = np.float32([[1, skew, -0.5*size*skew], [0, 1, 0]])
+    image = cv2.warpAffine(image, M, (size, size), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
     return image
 
 def unskewFileData(rootFile, saveFile):
+    size = input("Image dimension: ")
     with open(rootFile, "r") as trainingDataFile:
         for record in trainingDataFile:
             data = record.split(",")
             correctLabel = int(data[0])
             del data[0]
             #Skew data here
-            data = np.asarray(data, dtype=np.uint8).reshape((28,28))
-            imageUnskewed = deskew(data)
+            data = np.asarray(data, dtype=np.uint8).reshape((size, size))
+            imageUnskewed = deskew(data, size)
             imageUnskewed = imageUnskewed.flatten()
             data = imageUnskewed.tolist()
             data.insert(0, correctLabel)
