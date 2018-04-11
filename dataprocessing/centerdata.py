@@ -14,14 +14,16 @@ def centerImage(imageArray, threshold):
     x, y, w, h = cv2.boundingRect(points)
     finalImage = imageArray[y:y+h, x:x+w]
     height, width = finalImage.shape
-    # # Adjusts for rounding errors when cropped image had an odd side length
-    # while height < width:
-    #     finalImage= cv2.copyMakeBorder(finalImage, 1, 1, 0, 0, borderType, None, 0)
-    #     height = finalImage.shape[0]
-    # while width < height:
-    #     finalImage= cv2.copyMakeBorder(finalImage, 0, 0, 1, 1, borderType, None, 0)
-    #     width = finalImage.shape[1]
+    # Adjusts for rounding errors when cropped image had an odd side length
+    while height < width:
+        finalImage= cv2.copyMakeBorder(finalImage, 1, 1, 0, 0, borderType, None, 0)
+        height = finalImage.shape[0]
+    while width < height:
+        finalImage= cv2.copyMakeBorder(finalImage, 0, 0, 1, 1, borderType, None, 0)
+        width = finalImage.shape[1]
     #We have a centered image using WIDTHxHEIGHT
+
+    finalImage = cv2.copyMakeBorder(finalImage, 10, 10, 10, 10, borderType, None, 0)
     return finalImage
 
 #Centers and scales image

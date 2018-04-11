@@ -34,7 +34,7 @@ def createDrawWindow(neuralNetwork):
 				cv2.circle(image,(x,y),15,(0,0,0),-1)
 				grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 				grayImage = 255-grayImage
-				grayImage = centerImage(grayImage, 1)
+				grayImage = centerImage(grayImage, 10)
 				#grayImage = unskewImage(grayImage, grayImage.shape[0])
 				grayImage = cv2.resize(grayImage, (28,28), interpolation = cv2.INTER_AREA)
 				cv2.imshow("Network Letter", 255-grayImage)
