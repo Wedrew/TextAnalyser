@@ -39,8 +39,8 @@ def getBorders(imageArray):
 
 	#Get cleaned image of paper
 	nImage = normalizePaper(grayImage)
-	# cv2.imshow("Normalize Paper", nImage)
-	# cv2.waitKey(0)
+	cv2.imshow("Normalize Paper", nImage)
+	cv2.waitKey(0)
 
 	#Create long line kernel, and do morph-close-op
 	kernel = np.ones((1,100), np.uint8)
@@ -55,8 +55,8 @@ def getBorders(imageArray):
 
 	#Clean erroneous 
 	cleanedImage = cv2.fastNlMeansDenoising(cleanedImage, None, 30, 3, 21)
-	# cv2.imshow("Deniosed", cleanedImage)
-	# cv2.waitKey(0)
+	cv2.imshow("Deniosed", cleanedImage)
+	cv2.waitKey(0)
 
 	#Make almost white pixels completely white
 	a = cleanedImage > 235
@@ -88,15 +88,14 @@ def getBorders(imageArray):
 	#Inhance vertical lines
 	nLinesImage = normalizeLines(morphed)
 	_, nLines = cv2.threshold(nLinesImage, 20, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-	nLines = cv2.erode(nLines, np.ones((3,30), np.uint8))
+	nLines = cv2.erode(nLines, np.ones((3,50), np.uint8))
 	cv2.imshow("Enhanced Vertical Lines", nLines)
 	cv2.waitKey(0)
 
-	dilatedImage = cv2.erode(cleanedImage, np.ones((1,5), np.uint8))
+	dilatedImage = cv2.erode(cleanedImage, np.ones((1,10), np.uint8))
 	final = cv2.add(dilatedImage, 255-nLines)
 	cv2.imshow("Final", final)
 	cv2.waitKey(0)
-
 
 	#At this point image should have no paper lines
 	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
@@ -126,7 +125,7 @@ def getBorders(imageArray):
 			# cv2.waitKey(0)
 	return scaledImage
 
-imageArray = misc.imread("/Users/andrewpagan/Documents/School/TextAnalyser/data/images/paper1.jpg", mode="RGB")
+imageArray = misc.imread("/Users/andrewpagan/Documents/School/TextAnalyser/data/images/paper2.jpg", mode="RGB")
 convertedImage = getBorders(imageArray)
 im = PIL.Image.fromarray(convertedImage)
 im.show()
