@@ -120,9 +120,9 @@ def getBorders(imageArray):
 		#Another option is to use scaled image based on average word length
 		if r > 0.0 and w > 10 and h > 10: # h should be slightly larger than line width 
 			cv2.rectangle(scaledImage, (x-2, y-5), (x+w+2, y+h+5), (255, 0, 0), 1)
-			croppedWord = cleanedImage[y:y+h+5, x:x+w]
-			cv2.imshow("asdf", croppedWord)
-			cv2.waitKey(0)
+			# croppedWord = cleanedImage[y:y+h+5, x:x+w]
+			# cv2.imshow("asdf", croppedWord)
+			# cv2.waitKey(0)
 	return scaledImage
 
 imageArray = misc.imread("/Users/andrewpagan/Documents/School/TextAnalyser/data/images/paper2.jpg", mode="RGB")
