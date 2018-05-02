@@ -3,6 +3,7 @@ Utilizes a forward feed neural network, written purely in python, to predict han
 
 # Example Screenshots:
 <img src="/data/images/2018-05-02 15.55.18.gif?raw=true">
+
 ![ScreenShot](https://i.imgur.com/9m7dtNu.png)
 
 # Compiling
