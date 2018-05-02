@@ -147,7 +147,7 @@ The idea is to dilate the image from third step vertically and store
 it in a buffer. We make the asssumption that letters will be closer 
 together than words and by doing this is "lumps" together the words. 
 Finally to guarantee non-connectivity of the different lines we subtract 
-the lines thatwe determined in the previous step. At this point all 
+the lines that we determined in the previous step. At this point all 
 of the lines and wordsshould not be touching in any way and completely 
 free of noise.
 
