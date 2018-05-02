@@ -2,6 +2,7 @@
 Utilizes a forward feed neural network, written purely in python, to predict hand written text. Allows training, saving, running, drawing letters, and loading networks in .npy format, testing data must be in csv format. Normally achieves around 97% accuracy with good constraints
 
 # Example Screenshots:
++<img src="/data/images/2018-05-02 15.55.18.gif?raw=true">
 ![ScreenShot](https://i.imgur.com/9m7dtNu.png)
 
 # Compiling
