@@ -1,7 +1,7 @@
 <p align="center"><b>We are currently working on porting this application to c/c++ using OpenCV</b><br></p>
 
 # TextAnalyser
-Utilizes a forward feed neural network, written purely in python, to predict hand written text. Allows training, saving, running, drawing letters, and loading networks in .npy format, testing data must be in csv format. Normally achieves around 97% accuracy with good constraints. If you have any questions please feel free to email me.
+Utilizes a forward feed neural network, written purely in python, to predict hand written text. Allows training, saving, running, drawing letters, and loading networks in .npy format, testing data must be in csv format. Normally achieves around 97% accuracy with good constraints. When drawing the network only see's the final image and does not receive any mouse strokes. If you have any questions please feel free to email me.
 
 # Examples:
 <img src="/data/images/2018-05-02 15.55.18.gif?raw=true">
