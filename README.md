@@ -17,7 +17,7 @@ Utilizes a forward feed neural network, written purely in python, to predict han
 
 Original Image:
 ```
-First we need to take the picture, who'd have guessed ;)
+First we need to take the picture.
 
 
 
@@ -168,7 +168,7 @@ different "lumps" are. Contours can be explained as a curve joining
 all the continuous points and by using this we effectively determine 
 the location of each and every word. We have to filter out some 
 contours that aren't large or small enough to be considered words. 
-And finally we have our segmented paper :) There are some flaws
+And finally we have our segmented pape. There are some flaws
 with this technique as it causes any below the line character to
 be interpreted as a letter however I believe this can be fixed with
 some heuristic.
